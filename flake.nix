@@ -34,6 +34,8 @@
             typescript-language-server
             eslint
 
+            postman
+
             python314
         ];
 
