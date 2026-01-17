@@ -1,12 +1,23 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
+
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { db } from './db';
 
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken';
+
+import { db } from './db';
+import { getUser, jwtSecret, isAuthenticated, LoginInput, LoginLocals } from './AuthenticationService';
+
+// bcrypt setup
+const saltRounds = 10;
+
+// express setup
 const app = express();
 app.set('trust proxy', 1); // We are behind nginx proxy.
 app.use(cors());
+app.use(express.json());
 
 const httpServer = createServer(app);
 
@@ -39,6 +50,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch(err => console.error('Error during database bootstrap', err));
+
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');
@@ -96,8 +108,117 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
   });
-  
+
   socket.on('ping', () => {
     socket.emit('pong', { message: 'Hello from server' });
   });
 });
+
+// PostgreSQL error code.
+// TODO: Move error codes definitions to a separate file.
+const UniqueViolation = '23505';
+interface PgError extends Error {
+  code: string;
+  constraint?: string;
+}
+
+export interface RegisterInput {
+  username?: string;
+  email?: string;
+  password?: string;
+}
+
+/* Responds with 200 OK on success.
+ * If provided credentials are invalid, responds with 422 Unprocessable Entity.
+ */
+app.post('/register', async (
+  req: Request<{}, {}, RegisterInput>,
+  res: Response
+) => {
+  const { username, email, password } = req.body;
+
+  // TODO: Add proper validation.
+  // TODO: Make this into a monad.
+  if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+    const message = "Invalid input types.";
+    return res.status(422).json({ message }).end();
+  }
+
+  if (username.length < 2 || username.length > 50) {
+    const message = "Invalid username length. Must be between 2 and 50 characters.";
+    return res.status(422).json({ message }).end();
+  }
+
+  if (email.length > 200) {
+    const message = "Email too long. Max 200 characters.";
+    return res.status(422).json({ message }).end();
+  }
+
+  if (password.length < 8 || password.length > 100) {
+    const message = "Invalid password length. Must be between 8 and 100 characters.";
+    return res.status(422).json({ message }).end();
+  }
+
+  let hash = await bcrypt.hash(password, saltRounds);
+
+  try {
+    // TODO: Return the created user_id to auto-login after registration.
+    await db.none(
+      `INSERT INTO users(email, password_hash, username)
+        VALUES ($(email), $(hash), $(username))`,
+      { email, hash, username }
+    );
+
+    return res.status(200).end();
+  } catch (err) {
+    const error = err as PgError;
+    if (error.code === UniqueViolation) {
+      let message = 'User already exists.';
+
+      if (error.constraint === 'unique_username') {
+        message = 'Username already taken.';
+      } else if (error.constraint === 'unique_email') {
+        message = 'Email already registered.';
+      }
+
+      return res.status(422).json({ message }).end();
+    }
+
+    throw error;
+  }
+})
+
+interface LoginResponseData {
+  token: string;
+}
+
+app.post('/login', getUser, async (
+  req: Request<{}, {}, LoginInput>,
+  res: Response<LoginResponseData, LoginLocals>
+) => {
+  // Create and send jwt session token:
+  const payload = { user_id: res.locals.user_id };
+  const weekInSeconds = 60 * 60 * 24 * 7;
+  jwt.sign(payload, jwtSecret, { expiresIn: weekInSeconds }, (err, token) => {
+    if (err) {
+      throw err;
+    } else if (typeof token === 'undefined') {
+      console.log("Error: Failed to generate token.");
+      return res.status(500).end();
+    } else {
+      return res.status(200).json({ token: token }).end();
+    }
+  })
+})
+
+// Debug route to test authentication middleware.
+// TODO: Remove this on release!!!
+app.get('/test-login', isAuthenticated, async (req, res: Response<any, LoginLocals>) => {
+  const user_id = res.locals.user_id;
+  try {
+    let data = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id])
+    res.send(data);
+  } catch (err) {
+    throw err;
+  }
+})

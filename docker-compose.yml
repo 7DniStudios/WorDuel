@@ -15,6 +15,7 @@ services:
       - DB_PASS=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
       - DB_PORT=${DB_PORT}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "${BACKEND_PORT}:3000"
     networks:

@@ -32,6 +32,8 @@ BACKEND_PORT=3000
 FRONTEND_PORT=80
 FRONTEND_PORT_SSL=443
 ADMINER_PORT=8080
+
+JWT_SECRET=a_very_important_secret
 ```
 
 ## SSL Certificates
