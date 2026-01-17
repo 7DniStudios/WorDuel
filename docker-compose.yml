@@ -58,7 +58,7 @@ services:
       # Debug-only: public db port.
       - "5432:5432"
     volumes:
-      - ./postgres:/docker-entrypoint-initdb.d
+      - ./db:/docker-entrypoint-initdb.d
       - pgdata:/var/lib/postgresql/data
     networks:
       - worduel_net
