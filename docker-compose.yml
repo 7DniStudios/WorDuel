@@ -34,6 +34,9 @@ services:
       - PORT=80
     ports:
       - "${FRONTEND_PORT}:80"
+      - "${FRONTEND_PORT_SSL}:443"
+    volumes:
+      - ./.certs:/etc/nginx/certs:ro
     networks:
       - worduel_net
 

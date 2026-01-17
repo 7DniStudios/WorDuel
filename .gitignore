@@ -1,4 +1,13 @@
+# Do not push creddentials to github.
 .env
-.vscode
+
+# Do not push credentials to github, but keep the directory.
+.certs/*
+!.certs/.gitkeep
+
+# Node artifacts.
 node_modules
 dist
+
+# IDE configuration.
+.vscode
