@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS words(
 );
 
 CREATE TABLE IF NOT EXISTS word_stats(
-    word_id        INTEGER REFERENCES words(word_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    word_id        INTEGER PRIMARY KEY REFERENCES words(word_id) ON DELETE CASCADE ON UPDATE CASCADE,
     last_used      TIMESTAMP,
     game_count     INTEGER NOT NULL DEFAULT 0 CHECK (game_count>=0),
     won_game_count INTEGER NOT NULL DEFAULT 0 CHECK (won_game_count>=0),
