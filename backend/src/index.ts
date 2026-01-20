@@ -59,7 +59,20 @@ bootstrap().catch(err => console.error('Error during database bootstrap', err));
 
 
 app.get('/', (req, res) => {
-  res.send('Backend is running!');
+  res.render('index');
+});
+
+app.get('/toggle', (req, res) => {
+  const currentText = req.query.text as string;
+  const nextText = currentText === 'Ping' ? 'Pong' : 'Ping';
+
+  res.render('partials/test_button', { label: nextText }, (err, html) => {
+    if (err) {
+      throw err;
+    } else {
+      res.send(html);
+    }
+  });
 });
 
 interface CheckWordParams {
