@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 
 import { createServer } from 'http';
+import path from 'path';
 import { Server } from 'socket.io';
 import cors from 'cors';
 
@@ -15,8 +16,13 @@ const saltRounds = 10;
 
 // express setup
 const app = express();
+
 app.set('trust proxy', 1); // We are behind nginx proxy.
 app.use(cors());
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../views'));
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 
 const httpServer = createServer(app);

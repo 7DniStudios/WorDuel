@@ -19,6 +19,8 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/views ./views
+COPY --from=builder /app/public ./public
 
 USER node
 

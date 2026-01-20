@@ -1,8 +1,8 @@
 services:
-  backend-service:
+  backend:
     build:
-      context: ./backend-service
-    container_name: worduel_backend
+      context: ./backend
+    container_name: worduel
     stop_grace_period: 5s
     depends_on:
       db:
@@ -21,15 +21,13 @@ services:
     networks:
       - worduel_net
 
-  frontend-service:
-    build:
-      context: ./frontend-service
-      args:
-        - VITE_API_URL=http://localhost:${BACKEND_PORT}
-    container_name: worduel_frontend
+  nginx:
+    image: nginx:alpine
+    container_name: worduel_gateway
+    restart: always
     stop_grace_period: 2s
     depends_on:
-      backend-service:
+      backend:
         condition: service_started
     environment:
       - PORT=80
@@ -37,6 +35,7 @@ services:
       - "${FRONTEND_PORT}:80"
       - "${FRONTEND_PORT_SSL}:443"
     volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./.certs:/etc/nginx/certs:ro
     networks:
       - worduel_net
