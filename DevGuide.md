@@ -22,10 +22,10 @@ We do not keep `.env` file on github.
 For local development one can use the following default values:
 
 ```
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=admin
-POSTGRES_DB=worduel_db
-DB_HOST=db
+DB_USER=admin
+DB_PASS=admin
+DB_NAME=worduel_db
+DB_HOST=localhost
 DB_PORT=5432
 
 BACKEND_PORT=3000
@@ -45,3 +45,22 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout nginx.key -out nginx
 ```
 
 > Place it in `.certs/` directory.
+
+## Running Backend Locally
+
+For this you need to have the database docker running BUT `worduel_gateway` and `worduel` services stopped.
+
+With such setup it is enough to run:
+
+```bash
+# In backend/ directory
+npm run dev
+```
+
+Alternatively to run with live css generation:
+
+```bash
+# In backend/ directory
+npm run dev & npm run watch:css
+# Note: For some reason 'tailwindcss' is stingy about having access to stdin...
+```

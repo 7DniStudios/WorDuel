@@ -6,7 +6,7 @@
     "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/css/style.css --minify",
     "build": "npm run build:css && tsc",
     "start": "node dist/index.js",
-    "dev": "npm run watch:css && ts-node src/index.ts"
+    "dev": "npx dotenv -e ../.env -- ts-node src/index.ts"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.18",
@@ -16,8 +16,8 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.3",
     "pg-promise": "^12.3.0",
-    "tailwindcss": "^4.1.18",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.4",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -28,6 +28,7 @@
     "@types/node": "^20.11.16",
     "@types/pg-promise": "^0.0.28",
     "@types/socket.io": "^3.0.1",
+    "dotenv-cli": "^11.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
