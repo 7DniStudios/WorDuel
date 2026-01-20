@@ -62,6 +62,7 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+// TODO: Remove this! Debug route to test HTMX.
 app.get('/toggle', (req, res) => {
   const currentText = req.query.text as string;
   const nextText = currentText === 'Ping' ? 'Pong' : 'Ping';
