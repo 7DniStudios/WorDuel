@@ -6,14 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <script src="/js/htmx.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
   <link href="/css/style.css" rel="stylesheet">
   <title>WorDuel</title>
 </head>
 
 <body class="text-center">
+  <%- include('partials/navbar') %>
+    
   <h1>Welcome to WorDuel</h1>
+  
+  <%- include('partials/test_button', { label: 'Ping' }) %>
 </body>
-
-<%- include('partials/test_button', { label: 'Ping' }) %>
-
 </html>

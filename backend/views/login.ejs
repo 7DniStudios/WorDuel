@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">  
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="/js/htmx.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+  <link href="/css/style.css" rel="stylesheet">
+  <title>WorDuel</title>
+</head>
+
+<body class="text-center h-screen">
+  <%- include('partials/navbar') %>
+  
+  <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto h-fit">
+    <div class="w-full text-white rounded-lg shadow border sm:max-w-md  bg-zinc-800 border-gray-700">
+      <form hx-post="/login" hx-swap="innerHTML" hx-target="#login-message" method="post" class="block px-4 py-2 text-sm">
+        <div>
+          <label>Email:</label><br>
+          <input type="text" class="bg-gray-100 text-black" name="email" placeholder="name@example.com" required><br><br>
+        </div>
+        <div class>
+          <label>Password:</label><br>
+          <input type="password" class="bg-gray-100 text-black" name="password" placeholder="Password" required><br><br>
+        </div>
+        <div id="login-message" class="text-red-500">
+
+        </div>
+        <br/>
+        <!-- submit button -->
+          <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+            <input type="submit" value="login">
+          </div>
+      </form>
+    </div>
+  </div>
+</body>
+
+
+
+</html>

@@ -1,0 +1,13 @@
+<nav class="flex items-center justify-between flex-wrap bg-zinc-800 p-6">
+  <div class="text-white">
+    <a href="/">Home</a>
+  </div>
+  
+  <% if(locals.logged_in_user){ %>
+    <%- include('navbar_element_logged_in') %>
+  <% } else{ %>
+    <%- include('navbar_element_guest') %>
+  <% } %>
+
+</nav> 
+

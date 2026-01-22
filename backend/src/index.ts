@@ -1,4 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
+import { ParamsDictionary } from "express-serve-static-core"
+import bodyParser from "body-parser"
 
 import { createServer } from 'http';
 import path from 'path';
@@ -30,8 +32,10 @@ app.set('views', path.join(__dirname, '../views'));
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());  
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(readSessionCookies)
+
 
 const httpServer = createServer(app);
 
@@ -70,6 +74,8 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+
+
 // TODO: Remove this! Debug route to test HTMX.
 app.get('/toggle', (req, res) => {
   const currentText = req.query.text as string;
@@ -84,7 +90,7 @@ app.get('/toggle', (req, res) => {
   });
 });
 
-interface CheckWordParams {
+interface CheckWordParams extends ParamsDictionary  {
   language: string;
   word: string;
 }
@@ -216,20 +222,18 @@ app.post('/register', async (
   }
 })
 
-interface LoginResponseData {
-  token: string;
-}
 
 app.post('/login', getUser, async (
   req: Request<{}, {}, LoginInput>,
-  res: Response<LoginResponseData, LoginLocals>
+  res: Response<string, LoginLocals>
 ) => {
   // Create and send jwt session token:
   if(!res.locals.logged_in_user){
     // getUser always sets LoginLocals or fails, so this should be impossible
     throw new Error("Error: absurd -- getUser did not set LoginLocals")
   }
-  const payload = { user_id: res.locals.logged_in_user.user_id };
+  const {user_id, username} = res.locals.logged_in_user;
+  const payload = { user_id: user_id, username: username };
   const weekInSeconds = 60 * 60 * 24 * 7;
   jwt.sign(payload, jwtSecret, { expiresIn: weekInSeconds }, (err, token) => {
     if (err) {
@@ -239,9 +243,19 @@ app.post('/login', getUser, async (
       return res.status(500).end();
     } else {
       res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
-      return res.status(200).end();
+      res.header("HX-Location", "/user/"  + user_id)
+      return res.status(200).send();
     }
   })
+});
+
+app.get('/login', (req, res: Response<any, LoginLocals>) =>{
+  if(res.locals.logged_in_user){
+    // User already logged in. Redirect to their
+    return res.redirect("/user/" + res.locals.logged_in_user.user_id);
+  }else{
+    res.render("login");
+  }
 })
 
 // Debug route to test authentication middleware.
@@ -253,8 +267,57 @@ app.get('/test-login', async (req, res: Response<any, LoginLocals>) => {
   const user_id = res.locals.logged_in_user.user_id;
   try {
     let data = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id])
-    res.send(data);
+    return res.send(data);
   } catch (err) {
     throw err;
   }
+});
+
+interface UserSiteParams extends ParamsDictionary {
+  userID: string
+};
+
+app.get("/logout", (req, res) =>{
+  return res.clearCookie("worduelSessionCookie").redirect("/");
+})
+
+
+  
+interface UserStatsQuery{
+  user_id: number,
+  username: string,
+  created_at: Date,
+  games_played: number,
+  games_won: number,
+}
+
+const showOwnSite = function(req: Request<UserSiteParams>, res: Response<any, LoginLocals>, next: NextFunction){
+  if(!res.locals.logged_in_user || +req.params.userID != res.locals.logged_in_user.user_id){
+    return next();
+  }
+  res.send("ert")
+  // TODO: show site of the currently logged-in user
+}
+
+app.get('/user/:userID',
+  showOwnSite,
+  async (req: Request<UserSiteParams>, res: Response<any, LoginLocals>) =>{
+    const user_id = +req.params.userID
+    try{
+      let data = await db.one<UserStatsQuery>('SELECT username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
+        const options = {
+        user_id: user_id,
+        username: data.username,
+        created_at: data.created_at,
+        games_played: data.games_played,
+        games_won: data.games_won, 
+      } 
+      return res.render("user", options);
+    } catch(err) {
+      const error = err as PgError;
+      //TODO: error handling
+      return res.send("User does not exists");
+    }
+    
+    
 })
