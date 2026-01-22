@@ -7,11 +7,13 @@ import cors from 'cors';
 
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 import { db } from './db';
-import { getUser, jwtSecret, isAuthenticated, LoginInput, LoginLocals } from './AuthenticationService';
 import { logger } from './logging/logger';
 import { morganMiddleware } from './logging/morgan';
+
+import { getUser, jwtSecret, readSessionCookies, LoginInput, LoginLocals } from './AuthenticationService';
 
 // bcrypt setup
 const saltRounds = 10;
@@ -25,8 +27,11 @@ app.use(morganMiddleware);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
+
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(express.json());
+app.use(express.json());  
+app.use(cookieParser());
+app.use(readSessionCookies)
 
 const httpServer = createServer(app);
 
@@ -220,7 +225,11 @@ app.post('/login', getUser, async (
   res: Response<LoginResponseData, LoginLocals>
 ) => {
   // Create and send jwt session token:
-  const payload = { user_id: res.locals.user_id };
+  if(!res.locals.logged_in_user){
+    // getUser always sets LoginLocals or fails, so this should be impossible
+    throw new Error("Error: absurd -- getUser did not set LoginLocals")
+  }
+  const payload = { user_id: res.locals.logged_in_user.user_id };
   const weekInSeconds = 60 * 60 * 24 * 7;
   jwt.sign(payload, jwtSecret, { expiresIn: weekInSeconds }, (err, token) => {
     if (err) {
@@ -229,15 +238,19 @@ app.post('/login', getUser, async (
       logger.error("Error: Failed to generate token.");
       return res.status(500).end();
     } else {
-      return res.status(200).json({ token: token }).end();
+      res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
+      return res.status(200).end();
     }
   })
 })
 
 // Debug route to test authentication middleware.
 // TODO: Remove this on release!!!
-app.get('/test-login', isAuthenticated, async (req, res: Response<any, LoginLocals>) => {
-  const user_id = res.locals.user_id;
+app.get('/test-login', async (req, res: Response<any, LoginLocals>) => {
+  if(!res.locals.logged_in_user){
+    return res.send("User not authenticated");
+  }
+  const user_id = res.locals.logged_in_user.user_id;
   try {
     let data = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id])
     res.send(data);
