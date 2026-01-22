@@ -6,7 +6,7 @@
     "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/css/style.css --minify",
     "build": "npm run build:css && tsc",
     "start": "node dist/index.js",
-    "dev": "npx dotenv -e ../.env -- ts-node src/index.ts"
+    "dev": "npx dotenv -e ../.env -- tsx watch src/index.ts"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.18",
@@ -30,6 +30,7 @@
     "@types/socket.io": "^3.0.1",
     "dotenv-cli": "^11.0.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.3"
   }
 }
