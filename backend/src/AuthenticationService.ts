@@ -53,7 +53,7 @@ export async function getUser(
       next();
     } else {
       // TODO: Might want to log unsuccessful login attempts
-      res.status(401).json({ message: "Invalid credentials" }).end();
+      res.status(200).send("Invalid credentials"); // 200 because htmx requires this
     }
   } catch (err) {
     logger.error("Error in getUser:", err);
@@ -110,3 +110,4 @@ export function readSessionCookies(
     }
   })
 }
+
