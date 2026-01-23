@@ -207,7 +207,8 @@ app.post('/register', async (
       { email, hash, username }
     );
 
-    return res.status(200).end();
+    
+    return res.header("HX-Redirect", "/login").status(200).end();
   } catch (err) {
     const error = err as PgError;
     if (error.code === UniqueViolation) {
@@ -226,6 +227,14 @@ app.post('/register', async (
   }
 })
 
+app.get('/register', async (req, res) =>{
+  if(res.locals.logged_in_user){
+    // User already logged in. Redirect to their
+    return res.redirect("/user/" + res.locals.logged_in_user.user_id);
+  }else{
+    res.render("register");
+  }
+})
 
 app.post('/login', getUser, async (
   req: Request<{}, {}, LoginInput>,
@@ -247,7 +256,7 @@ app.post('/login', getUser, async (
       return res.status(500).end();
     } else {
       res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
-      res.header("HX-Location", "/user/"  + user_id)
+      res.header("HX-Redirect", "/user/"  + user_id)
       return res.status(200).send();
     }
   })
