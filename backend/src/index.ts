@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { ParamsDictionary } from "express-serve-static-core"
-import bodyParser from "body-parser"
+import { ParamsDictionary } from "express-serve-static-core";
+import bodyParser from "body-parser";
+import expressEjsLayouts  from 'express-ejs-layouts';
 
 import { createServer } from 'http';
 import path from 'path';
@@ -30,6 +31,7 @@ app.use(morganMiddleware);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
 
+app.use(expressEjsLayouts);
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());  
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -81,7 +83,7 @@ app.get('/toggle', (req, res) => {
   const currentText = req.query.text as string;
   const nextText = currentText === 'Ping' ? 'Pong' : 'Ping';
 
-  res.render('partials/test_button', { label: nextText }, (err, html) => {
+  res.render('partials/test_button', { layout: false, label: nextText }, (err, html) => {
     if (err) {
       throw err;
     } else {
@@ -138,6 +140,8 @@ app.get('/word-exists/:language/:word', async (req: express.Request<CheckWordPar
 
 io.on('connection', (socket) => {
   logger.info(`User connected: ${socket.id}`);
+
+  logger.debug(socket.request.headers.cookie)
 
   socket.on('disconnect', () => {
     logger.info(`User disconnected: ${socket.id}`);
