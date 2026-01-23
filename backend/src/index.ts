@@ -288,6 +288,7 @@ app.get("/logout", (req, res) =>{
 
   
 interface UserStatsQuery{
+  email: string,
   user_id: number,
   username: string,
   created_at: Date,
@@ -295,12 +296,27 @@ interface UserStatsQuery{
   games_won: number,
 }
 
-const showOwnSite = function(req: Request<UserSiteParams>, res: Response<any, LoginLocals>, next: NextFunction){
-  if(!res.locals.logged_in_user || +req.params.userID != res.locals.logged_in_user.user_id){
+const showOwnSite = async function(req: Request<UserSiteParams>, res: Response<any, LoginLocals>, next: NextFunction){
+  const user_id = +req.params.userID
+  if(!res.locals.logged_in_user || user_id != res.locals.logged_in_user.user_id){
     return next();
   }
-  res.send("ert")
-  // TODO: show site of the currently logged-in user
+  try{
+    let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
+      const options = {
+      user_id: user_id,
+      email: data.email,
+      username: data.username,
+      created_at: data.created_at,
+      games_played: data.games_played,
+      games_won: data.games_won, 
+    } 
+    return res.render("logged_in_user", options);
+  } catch(err) {
+    const error = err as PgError;
+    //TODO: error handling
+    return res.send("User does not exists");
+  }
 }
 
 app.get('/user/:userID',
@@ -308,7 +324,7 @@ app.get('/user/:userID',
   async (req: Request<UserSiteParams>, res: Response<any, LoginLocals>) =>{
     const user_id = +req.params.userID
     try{
-      let data = await db.one<UserStatsQuery>('SELECT username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
+      let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
         const options = {
         user_id: user_id,
         username: data.username,
@@ -320,8 +336,75 @@ app.get('/user/:userID',
     } catch(err) {
       const error = err as PgError;
       //TODO: error handling
-      return res.send("User does not exists");
+      return res.send("User does not exist");
     }
+})
+
+
+app.patch("/update_user_data", async (req, res) =>{
+  const { username, email, /* password, password_repeat */ } = req.body;
+
+  if(!res.locals.logged_in_user){
+    const message = "User not logged in.";
+    return res.status(401).json({ message }).end();
+  }
+  const user_id = res.locals.logged_in_user.user_id;
+  
+  // TODO: Add proper validation.
+  // TODO: Make this into a monad.
+/*   if (password !== password_repeat){
+    const message = "Passwords don't match.";
+    return res.status(422).json({ message }).end();
+  } */
+  if (typeof username !== 'string' || typeof email !== 'string' /* || typeof password !== 'string' */) {
+    const message = "Invalid input types.";
+    return res.status(422).json({ message }).end();
+  }
+
+  if (username.length < 2 || username.length > 50) {
+    const message = "Invalid username length. Must be between 2 and 50 characters.";
+    return res.status(422).json({ message }).end();
+  }
+
+  if (email.length > 200) {
+    const message = "Email too long. Max 200 characters.";
+    return res.status(422).json({ message }).end();
+  }
+
+/*   if (password.length < 8 || password.length > 100) {
+    const message = "Invalid password length. Must be between 8 and 100 characters.";
+    return res.status(422).json({ message }).end();
+  } */
+
+/*   let hash = await bcrypt.hash(password, saltRounds); */
+
+  try {
+    // TODO: Return the created user_id to auto-login after registration.
+    await db.none(
+      `UPDATE users
+        SET email = $(email),
+          username = $(username)
+        WHERE user_id= $(user_id);`,
+      { email, username, user_id }
+    );
     
-    
+    // TODO: update cookie
+
+    return res.header("HX-Refresh", "true").status(200).end();
+  } catch (err) {
+    const error = err as PgError;
+    if (error.code === UniqueViolation) {
+      let message = 'User already exists.';
+
+      if (error.constraint === 'unique_username') {
+        message = 'Username already taken.';
+      } else if (error.constraint === 'unique_email') {
+        message = 'Email already registered.';
+      }
+
+      return res.status(422).json({ message }).end();
+    }
+
+    throw error;
+  }
 })
