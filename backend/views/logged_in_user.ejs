@@ -1,0 +1,89 @@
+<div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white" >
+  <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+    box1
+  </div>
+  <div class="flex-1/2">
+    <div class="flex flex-col h-full gap-2">
+      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+        <ul class="text-left">                           <!-- TODO: Generalize and move to partial views -->
+          <li> Username: <%= locals.username %> </li>
+          <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
+          <li> Games played: <%= locals.games_played %> </li>
+          <li> Games won: <%= locals.games_won  %> </li>
+        </ul>
+      </div>
+      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+        <div id="user-data-box" class="flex flex-col justify-between h-1/1" style="display: block;">
+          <ul class="text-left">
+            <li> Username: <%= locals.username %> </li>
+            <li> Email: <%= locals.email %> </li>
+<!--             <li> Password: ••••••••••</li> -->
+          </ul>
+          <button id="data-button" class="flex-none self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 w-9/10">
+            Update personal info
+          </button>
+        </div>
+        <!-- TODO: make this pretty, make buttons align to the bottom -->
+        <!-- XXX: Something is wrong with those flexboxes AND I DONT CARE  -->
+        <!-- TODO: Client side check if passwords match -->
+        <!-- TODO: confirmation dialog window -->
+        <!-- TODO: input current password to change password -->
+        <!-- TODO: what if change fails? -->
+        <!-- TODO: password change -->
+        <form hx-patch="/update_user_data">
+          <div id="user-data-edit-box" class="flex flex-col justify-between h-1/1" style="display: none;">
+              <div class="flex-auto self-start">
+                <input id="username-input" type="text" class="bg-gray-100 text-black " name="username" placeholder="username" value="<%- locals.username %>" required><br><br>
+              </div>
+              <div class="flex-auto">
+                <input id="email-input" type="text" class="bg-gray-100 text-black" name="email" placeholder="name@example.com" value="<%- locals.email %>" required><br><br>
+              </div>
+              <!-- <div class="flex-auto">
+                <input id="pass-input" type="password" class="bg-gray-100 text-black" name="password" placeholder="password"><br><br>
+              </div>
+              <div class="flex-auto">
+                <input id="rep-pass-input" type="password" class="bg-gray-100 text-black" name="password_repeat" placeholder="repeat password"><br><br>
+              </div> -->
+            <div class="flex flex-row w-1/1 gap-4 px-8">
+              <button
+                type="submit"
+                class="flex flex-auto justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
+                  Save
+              </button>
+              <button
+                id="cancel-button" 
+                class="flex flex-auto justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
+                  Cancel
+              </button> 
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePersonalData() {
+    document.getElementById("username-input").value = "<%- locals.username %>";
+    document.getElementById("email-input").value = "<%- locals.email %>";
+/*     document.getElementById("pass-input").value = "";
+    document.getElementById("rep-pass-input").value = ""; */
+    
+    var x = document.getElementById("user-data-box");
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+    var x = document.getElementById("user-data-edit-box");
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+  }
+  
+  document.getElementById("data-button").onclick=togglePersonalData;
+  document.getElementById("cancel-button").onclick=togglePersonalData;
+</script>
