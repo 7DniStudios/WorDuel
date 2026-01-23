@@ -1,39 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">  
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script src="/js/htmx.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
-  <link href="/css/style.css" rel="stylesheet">
-  <title>WorDuel</title>
-</head>
-
-<body class="text-center flex flex-col h-screen">
-  <%- include('partials/navbar') %>
-  <div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white" >
-    <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-      box1
-    </div>
-    <div class="flex-1/2">
-      <div class="flex flex-col h-full gap-2">
-        <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-          <ul class="text-left">                           <!-- Generalize and move to partial views -->
-            <li> Username: <%= locals.username %> </li>
-            <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
-            <li> Games played: <%= locals.games_played %> </li>
-            <li> Games won: <%= locals.games_won  %> </li>
-          </ul>
-        </div>
-        <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2"> 
-          Box3 -- place something here
-        </div>
+<div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white" >
+  <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+    box1
+  </div>
+  <div class="flex-1/2">
+    <div class="flex flex-col h-full gap-2">
+      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+        <ul class="text-left">                           <!-- Generalize and move to partial views -->
+          <li> Username: <%= locals.username %> </li>
+          <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
+          <li> Games played: <%= locals.games_played %> </li>
+          <li> Games won: <%= locals.games_won  %> </li>
+        </ul>
+      </div>
+      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2"> 
+        Box3 -- place something here
       </div>
     </div>
   </div>
-  
-  
-</body>
-</html>
+</div>
