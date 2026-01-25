@@ -17,6 +17,7 @@
           <ul class="text-left">
             <li> Username: <%= locals.username %> </li>
             <li> Email: <%= locals.email %> </li>
+            <li> Is profile public: <%= locals.is_public %> </li>
 <!--             <li> Password: ••••••••••</li> -->
           </ul>
           <button id="data-button" class="flex-none self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 w-9/10">
@@ -33,10 +34,16 @@
         <form hx-patch="/update_user_data">
           <div id="user-data-edit-box" class="flex flex-col justify-between h-1/1" style="display: none;">
               <div class="flex-auto self-start">
+                <label for="username"> username </label>
                 <input id="username-input" type="text" class="bg-gray-100 text-black " name="username" placeholder="username" value="<%- locals.username %>" required><br><br>
               </div>
               <div class="flex-auto">
+                <label for="email"> email </label>
                 <input id="email-input" type="text" class="bg-gray-100 text-black" name="email" placeholder="name@example.com" value="<%- locals.email %>" required><br><br>
+              </div>
+              <div class="flex-auto">
+                <label for="Is profile public"> is_public </label>
+                <input id="is-public-input" type="checkbox" class="bg-gray-100 text-black" name="is_public" value="true" <% if(locals.is_public){ %> checked <% } %> ><br><br>
               </div>
               <!-- <div class="flex-auto">
                 <input id="pass-input" type="password" class="bg-gray-100 text-black" name="password" placeholder="password"><br><br>
@@ -67,6 +74,9 @@
   function togglePersonalData() {
     document.getElementById("username-input").value = "<%- locals.username %>";
     document.getElementById("email-input").value = "<%- locals.email %>";
+    
+    document.getElementById("is-public-input").checked = <%- locals.is_public %> ;
+    
 /*     document.getElementById("pass-input").value = "";
     document.getElementById("rep-pass-input").value = ""; */
     

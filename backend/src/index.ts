@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from "express-serve-static-core";
 import bodyParser from "body-parser";
-import expressEjsLayouts  from 'express-ejs-layouts';
+import expressEjsLayouts from 'express-ejs-layouts';
 
 import { createServer } from 'http';
 import path from 'path';
@@ -33,7 +33,7 @@ app.set('views', path.join(__dirname, '../views'));
 
 app.use(expressEjsLayouts);
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(express.json());  
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(readSessionCookies)
@@ -92,7 +92,7 @@ app.get('/toggle', (req, res) => {
   });
 });
 
-interface CheckWordParams extends ParamsDictionary  {
+interface CheckWordParams extends ParamsDictionary {
   language: string;
   word: string;
 }
@@ -125,7 +125,7 @@ app.get('/word-exists/:language/:word', async (req: express.Request<CheckWordPar
         LIMIT 1`,
       {
         language: languageSanitized,
-        word: wordSanitized 
+        word: wordSanitized
       }
     );
 
@@ -207,7 +207,7 @@ app.post('/register', async (
       { email, hash, username }
     );
 
-    
+
     return res.header("HX-Redirect", "/login").status(200).end();
   } catch (err) {
     const error = err as PgError;
@@ -227,11 +227,11 @@ app.post('/register', async (
   }
 })
 
-app.get('/register', async (req, res) =>{
-  if(res.locals.logged_in_user){
+app.get('/register', async (req, res) => {
+  if (res.locals.logged_in_user) {
     // User already logged in. Redirect to their
     return res.redirect("/user/" + res.locals.logged_in_user.user_id);
-  }else{
+  } else {
     res.render("register");
   }
 })
@@ -241,11 +241,11 @@ app.post('/login', getUser, async (
   res: Response<string, LoginLocals>
 ) => {
   // Create and send jwt session token:
-  if(!res.locals.logged_in_user){
+  if (!res.locals.logged_in_user) {
     // getUser always sets LoginLocals or fails, so this should be impossible
     throw new Error("Error: absurd -- getUser did not set LoginLocals")
   }
-  const {user_id, username} = res.locals.logged_in_user;
+  const { user_id, username } = res.locals.logged_in_user;
   const payload = { user_id: user_id, username: username };
   const weekInSeconds = 60 * 60 * 24 * 7;
   jwt.sign(payload, jwtSecret, { expiresIn: weekInSeconds }, (err, token) => {
@@ -255,18 +255,18 @@ app.post('/login', getUser, async (
       logger.error("Error: Failed to generate token.");
       return res.status(500).end();
     } else {
-      res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
-      res.header("HX-Redirect", "/user/"  + user_id)
+      res.cookie("worduelSessionCookie", token, { maxAge: weekInSeconds * 1000 })
+      res.header("HX-Redirect", "/user/" + user_id)
       return res.status(200).send();
     }
   })
 });
 
-app.get('/login', (req, res: Response<any, LoginLocals>) =>{
-  if(res.locals.logged_in_user){
+app.get('/login', (req, res: Response<any, LoginLocals>) => {
+  if (res.locals.logged_in_user) {
     // User already logged in. Redirect to their
     return res.redirect("/user/" + res.locals.logged_in_user.user_id);
-  }else{
+  } else {
     res.render("login");
   }
 })
@@ -274,7 +274,7 @@ app.get('/login', (req, res: Response<any, LoginLocals>) =>{
 // Debug route to test authentication middleware.
 // TODO: Remove this on release!!!
 app.get('/test-login', async (req, res: Response<any, LoginLocals>) => {
-  if(!res.locals.logged_in_user){
+  if (!res.locals.logged_in_user) {
     return res.send("User not authenticated");
   }
   const user_id = res.locals.logged_in_user.user_id;
@@ -290,38 +290,40 @@ interface UserSiteParams extends ParamsDictionary {
   userID: string
 };
 
-app.get("/logout", (req, res) =>{
+app.get("/logout", (req, res) => {
   return res.clearCookie("worduelSessionCookie").redirect("/");
 })
 
 
-  
-interface UserStatsQuery{
+
+interface UserStatsQuery {
   email: string,
   user_id: number,
   username: string,
   created_at: Date,
   games_played: number,
   games_won: number,
+  is_public: boolean
 }
 
-const showOwnSite = async function(req: Request<UserSiteParams>, res: Response<any, LoginLocals>, next: NextFunction){
+const showOwnSite = async function (req: Request<UserSiteParams>, res: Response<any, LoginLocals>, next: NextFunction) {
   const user_id = +req.params.userID
-  if(!res.locals.logged_in_user || user_id != res.locals.logged_in_user.user_id){
+  if (!res.locals.logged_in_user || user_id != res.locals.logged_in_user.user_id) {
     return next();
   }
-  try{
-    let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
-      const options = {
+  try {
+    let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won, is_public FROM users WHERE user_id = $1;', [user_id])
+    const options = {
       user_id: user_id,
       email: data.email,
       username: data.username,
       created_at: data.created_at,
       games_played: data.games_played,
-      games_won: data.games_won, 
-    } 
+      games_won: data.games_won,
+      is_public: data.is_public,
+    }
     return res.render("logged_in_user", options);
-  } catch(err) {
+  } catch (err) {
     const error = err as PgError;
     //TODO: error handling
     return res.send("User does not exists");
@@ -330,35 +332,47 @@ const showOwnSite = async function(req: Request<UserSiteParams>, res: Response<a
 
 app.get('/user/:userID',
   showOwnSite,
-  async (req: Request<UserSiteParams>, res: Response<any, LoginLocals>) =>{
+  async (req: Request<UserSiteParams>, res: Response<any, LoginLocals>) => {
     const user_id = +req.params.userID
-    try{
-      let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won FROM users WHERE user_id = $1;', [user_id])
-        const options = {
+    try {
+      let data = await db.one<UserStatsQuery>('SELECT email, username, created_at, games_played, games_won, is_public FROM users WHERE user_id = $1;', [user_id])
+      const is_public = data.is_public;
+
+      if (!is_public) {
+        // Profile isnt public, so do not show it.
+        // TODO: when making friends is implemented, allow them to see your profile even if not public
+        return res.render("nonexistent_user");
+      }
+
+      const options = {
         user_id: user_id,
         username: data.username,
         created_at: data.created_at,
         games_played: data.games_played,
-        games_won: data.games_won, 
-      } 
+        games_won: data.games_won,
+        is_public: data.is_public,
+      }
       return res.render("user", options);
-    } catch(err) {
+    } catch (err) {
       const error = err as PgError;
       //TODO: error handling
-      return res.send("User does not exist");
+      return res.render("nonexistent_user");
     }
-})
+  })
 
 
-app.patch("/update_user_data", async (req, res) =>{
-  const { username, email} = req.body;
+app.patch("/update_user_data", async (req, res) => {
+  const { username, email } = req.body;
 
-  if(!res.locals.logged_in_user){
+  const is_public = (typeof req.body.is_public !== 'undefined')
+
+
+  if (!res.locals.logged_in_user) {
     const message = "User not logged in.";
     return res.status(401).json({ message }).end();
   }
   const user_id = res.locals.logged_in_user.user_id;
-  
+
   // TODO: Add proper validation.
   // TODO: Make this into a monad.
   if (typeof username !== 'string' || typeof email !== 'string' /* || typeof password !== 'string' */) {
@@ -390,13 +404,14 @@ app.patch("/update_user_data", async (req, res) =>{
         await db.none(
           `UPDATE users
             SET email = $(email),
-              username = $(username)
+              username = $(username),
+              is_public = $(is_public)
             WHERE user_id= $(user_id);`,
-          { email, username, user_id }
+          { email, username, is_public, user_id }
         );
-        res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
+        res.cookie("worduelSessionCookie", token, { maxAge: weekInSeconds * 1000 })
         return res.header("HX-Refresh", "true").status(200).end();
-        
+
       } catch (err) {
         const error = err as PgError;
         if (error.code === UniqueViolation) {
