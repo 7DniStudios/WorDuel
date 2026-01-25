@@ -39,6 +39,7 @@ CREATE TABLE users (
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     games_played  INTEGER NOT NULL DEFAULT 0 CHECK (games_played>=0),
     games_won     INTEGER NOT NULL DEFAULT 0 CHECK (games_won>=0),
+    is_public     BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT unique_username UNIQUE (username),
     CONSTRAINT unique_email UNIQUE (email)
