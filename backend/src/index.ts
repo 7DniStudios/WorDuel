@@ -351,7 +351,7 @@ app.get('/user/:userID',
 
 
 app.patch("/update_user_data", async (req, res) =>{
-  const { username, email, /* password, password_repeat */ } = req.body;
+  const { username, email} = req.body;
 
   if(!res.locals.logged_in_user){
     const message = "User not logged in.";
@@ -361,10 +361,6 @@ app.patch("/update_user_data", async (req, res) =>{
   
   // TODO: Add proper validation.
   // TODO: Make this into a monad.
-/*   if (password !== password_repeat){
-    const message = "Passwords don't match.";
-    return res.status(422).json({ message }).end();
-  } */
   if (typeof username !== 'string' || typeof email !== 'string' /* || typeof password !== 'string' */) {
     const message = "Invalid input types.";
     return res.status(422).json({ message }).end();
@@ -380,40 +376,44 @@ app.patch("/update_user_data", async (req, res) =>{
     return res.status(422).json({ message }).end();
   }
 
-/*   if (password.length < 8 || password.length > 100) {
-    const message = "Invalid password length. Must be between 8 and 100 characters.";
-    return res.status(422).json({ message }).end();
-  } */
+  // create new session token before updating database -- if this fails, we dont update
+  const payload = { user_id: user_id, username: username };
+  const weekInSeconds = 60 * 60 * 24 * 7;
+  jwt.sign(payload, jwtSecret, { expiresIn: weekInSeconds }, async (err, token) => {
+    if (err) {
+      throw err;
+    } else if (typeof token === 'undefined') {
+      console.log("Error: Failed to generate token.");
+      return res.status(500).send("Error: Failed to generate token.");
+    } else {
+      try {
+        await db.none(
+          `UPDATE users
+            SET email = $(email),
+              username = $(username)
+            WHERE user_id= $(user_id);`,
+          { email, username, user_id }
+        );
+        res.cookie("worduelSessionCookie", token, {maxAge: weekInSeconds*1000})
+        return res.header("HX-Refresh", "true").status(200).end();
+        
+      } catch (err) {
+        const error = err as PgError;
+        if (error.code === UniqueViolation) {
+          let message = 'User already exists.';
 
-/*   let hash = await bcrypt.hash(password, saltRounds); */
+          if (error.constraint === 'unique_username') {
+            message = 'Username already taken.';
+          } else if (error.constraint === 'unique_email') {
+            message = 'Email already registered.';
+          }
 
-  try {
-    // TODO: Return the created user_id to auto-login after registration.
-    await db.none(
-      `UPDATE users
-        SET email = $(email),
-          username = $(username)
-        WHERE user_id= $(user_id);`,
-      { email, username, user_id }
-    );
-    
-    // TODO: update cookie
+          return res.status(422).json({ message }).end();
+        }
 
-    return res.header("HX-Refresh", "true").status(200).end();
-  } catch (err) {
-    const error = err as PgError;
-    if (error.code === UniqueViolation) {
-      let message = 'User already exists.';
-
-      if (error.constraint === 'unique_username') {
-        message = 'Username already taken.';
-      } else if (error.constraint === 'unique_email') {
-        message = 'Email already registered.';
+        throw error;
       }
-
-      return res.status(422).json({ message }).end();
     }
+  })
 
-    throw error;
-  }
 })
