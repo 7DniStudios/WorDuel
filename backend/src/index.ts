@@ -110,12 +110,12 @@ app.get('/word-exists/:language/:word', async (req: express.Request<CheckWordPar
   const wordSanitized = word.toLowerCase().trim();
 
   if (languageSanitized.length !== 2) {
-    return res.status(400).json({ valid: false, message: 'Language code must be 2 characters long' });
+    return res.status(200).send({ valid: false, message: 'Language code must be 2 characters long' });
   }
 
   // Only words of length 8 are allowed.
   if (wordSanitized.length !== 8) {
-    return res.status(400).json({ valid: false, message: 'Word length must be between 1 and 8 characters' });
+    return res.status(200).json({ valid: false, message: 'Word length must be between 1 and 8 characters' });
   }
 
   try {
@@ -179,22 +179,22 @@ app.post('/register', async (
   // TODO: Make this into a monad.
   if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
     const message = "Invalid input types.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send( message );
   }
 
   if (username.length < 2 || username.length > 50) {
     const message = "Invalid username length. Must be between 2 and 50 characters.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   if (email.length > 200) {
     const message = "Email too long. Max 200 characters.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   if (password.length < 8 || password.length > 100) {
     const message = "Invalid password length. Must be between 8 and 100 characters.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   let hash = await bcrypt.hash(password, saltRounds);
@@ -206,7 +206,6 @@ app.post('/register', async (
         VALUES ($(email), $(hash), $(username))`,
       { email, hash, username }
     );
-
 
     return res.header("HX-Redirect", "/login").status(200).end();
   } catch (err) {
@@ -220,7 +219,7 @@ app.post('/register', async (
         message = 'Email already registered.';
       }
 
-      return res.status(422).json({ message }).end();
+      return res.status(200).send(message);
     }
 
     throw error;
@@ -369,7 +368,7 @@ app.patch("/update_user_data", async (req, res) => {
 
   if (!res.locals.logged_in_user) {
     const message = "User not logged in.";
-    return res.status(401).json({ message }).end();
+    return res.status(200).send({ message });
   }
   const user_id = res.locals.logged_in_user.user_id;
 
@@ -377,17 +376,17 @@ app.patch("/update_user_data", async (req, res) => {
   // TODO: Make this into a monad.
   if (typeof username !== 'string' || typeof email !== 'string' /* || typeof password !== 'string' */) {
     const message = "Invalid input types.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   if (username.length < 2 || username.length > 50) {
     const message = "Invalid username length. Must be between 2 and 50 characters.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   if (email.length > 200) {
     const message = "Email too long. Max 200 characters.";
-    return res.status(422).json({ message }).end();
+    return res.status(200).send(message);
   }
 
   // create new session token before updating database -- if this fails, we dont update
@@ -423,7 +422,7 @@ app.patch("/update_user_data", async (req, res) => {
             message = 'Email already registered.';
           }
 
-          return res.status(422).json({ message }).end();
+          return res.status(200).send(message).end();
         }
 
         throw error;
