@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import { db } from './db';
 import { getUser, jwtSecret, isAuthenticated, LoginInput, LoginLocals } from './AuthenticationService';
 import { logger } from './logging/logger';
+import { morganMiddleware } from './logging/morgan';
 
 // bcrypt setup
 const saltRounds = 10;
@@ -20,6 +21,7 @@ const app = express();
 
 app.set('trust proxy', 1); // We are behind nginx proxy.
 app.use(cors());
+app.use(morganMiddleware);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));

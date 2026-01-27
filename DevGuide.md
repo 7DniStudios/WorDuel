@@ -57,7 +57,7 @@ With such setup it is enough to run:
 npm run dev
 ```
 
-Alternatively to run with live css generation:
+Alternatively to run with live css and TS generation:
 
 ```bash
 # In backend/ directory
@@ -65,8 +65,19 @@ npm run dev & npm run watch:css
 # Note: For some reason 'tailwindcss' is stingy about having access to stdin...
 ```
 
-# Upload debug-data to Postgress
+## Upload debug-data to Postgress
 
 ```bash
 cat ${SQL_FILE} | docker exec -i worduel_db psql -d worduel_db -U admin -h localhost -p 5432 -f-
 ```
+
+## Debug Logs From Backend
+
+To see debug logs from backend (when it is running in docker):
+
+```bash
+docker logs -f worduel
+# Works for other containers as well.
+```
+
+> To run with minimal logging set environment variable `DEV_ENVIRONMENT=production`.
