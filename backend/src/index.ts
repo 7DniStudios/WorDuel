@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 
 import { db } from './db';
 import { getUser, jwtSecret, isAuthenticated, LoginInput, LoginLocals } from './AuthenticationService';
+import { logger } from './logging/logger';
 
 // bcrypt setup
 const saltRounds = 10;
@@ -36,26 +37,26 @@ const io = new Server(httpServer, {
 });
 
 async function bootstrap() {
-  console.log("Checking connection to PostgreSQL database...");
+  logger.info("Checking connection to PostgreSQL database...");
   const obj = await db.connect();
   obj.done();
-  console.log('Database available!');
+  logger.info('Database available!');
 
-  console.log('Running test query...');
+  logger.info('Running test query...');
   interface DatabaseTimeResponse {
     server_time: Date;
   };
 
-  const res = await db.one<DatabaseTimeResponse>('SELECT NOW() as server_time');    
-  console.log(`Test query: 'SELECT NOW()' -> "${res.server_time.toISOString()}".`);
+  const res = await db.one<DatabaseTimeResponse>('SELECT NOW() as server_time');
+  logger.info(`Test query: 'SELECT NOW()' -> "${res.server_time.toISOString()}".`);
 
   const PORT = process.env.PORT || 3000;
   httpServer.listen(PORT, () => {
-      console.log(`Server listening on port ${PORT}`);
+      logger.info(`Server listening on port ${PORT}`);
   });
 }
 
-bootstrap().catch(err => console.error('Error during database bootstrap', err));
+bootstrap().catch(err => logger.error('Error during database bootstrap', err));
 
 
 app.get('/', (req, res) => {
@@ -117,16 +118,16 @@ app.get('/word-exists/:language/:word', async (req: express.Request<CheckWordPar
     const message = valid ? 'Word exists in the database' : 'Word does not exist in the database';
     return res.json({ valid, message });
   } catch (error) {
-    console.error('Database error:', error);
+    logger.error('Database error:', error);
     return res.status(500).json({ valid: false, message: 'Internal server error' });
   }
 });
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  logger.info(`User connected: ${socket.id}`);
 
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
+    logger.info(`User disconnected: ${socket.id}`);
   });
 
   socket.on('ping', () => {
@@ -223,7 +224,7 @@ app.post('/login', getUser, async (
     if (err) {
       throw err;
     } else if (typeof token === 'undefined') {
-      console.log("Error: Failed to generate token.");
+      logger.error("Error: Failed to generate token.");
       return res.status(500).end();
     } else {
       return res.status(200).json({ token: token }).end();

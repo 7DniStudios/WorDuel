@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
 import { db } from './db';
+import { logger } from './logging/logger';
 
 export interface LoginInput {
   email: string;
@@ -46,7 +47,7 @@ export async function getUser(
       res.status(401).json({ message: "Invalid credentials" }).end();
     }
   } catch (err) {
-    console.log("Error in getUser:", err);
+    logger.error("Error in getUser:", err);
     return res.status(500).end();
   }
 }
