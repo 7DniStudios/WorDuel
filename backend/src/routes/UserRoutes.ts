@@ -4,4 +4,4 @@ import * as UserController from '../controller/UserController';
 
 export const userRouter = Router();
 
-userRouter.get('/:userID', UserController.renderOwnSite);
+userRouter.get('/:userID', UserController.renderUserSite);
