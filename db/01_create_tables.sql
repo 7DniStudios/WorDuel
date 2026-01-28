@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- two different languages can have words that are spelled the same, so we use an autoincremented id
 -- we could use the word-language pair as primary key, but it doesn't feel like a good solution
-CREATE TABLE IF NOT EXISTS words(
+CREATE TABLE words(
     word_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     word    char(8) NOT NULL,
     lang    char(2) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS words(
     CONSTRAINT unique_word_lang UNIQUE (word, lang)
 );
 
-CREATE TABLE IF NOT EXISTS word_stats(
+CREATE TABLE word_stats(
     word_id        INTEGER PRIMARY KEY REFERENCES words(word_id) ON DELETE CASCADE ON UPDATE CASCADE,
     last_used      TIMESTAMP,
     game_count     INTEGER NOT NULL DEFAULT 0 CHECK (game_count>=0),
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS word_stats(
 CREATE TABLE users (
     user_id       INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     email         VARCHAR(200) NOT NULL,
-    -- we will use JS bcrypt library. Their hashes and salts are concatenated, and have total length of 60 chars
+    -- we use JS bcrypt library. Their hashes and salts are concatenated, and have total length of 60 chars
     password_hash CHAR(60) NOT NULL,   
     username      VARCHAR(50) NOT NULL,
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -44,3 +44,30 @@ CREATE TABLE users (
     CONSTRAINT unique_username UNIQUE (username),
     CONSTRAINT unique_email UNIQUE (email)
 );
+
+
+CREATE TABLE friend_requests (
+    id          INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    sender_id   INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    reciever_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    send_time   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT sender_reciever_different CHECK (sender_id != reciever_id)
+);
+
+CREATE TABLE friends(
+    friends_id    INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    lower_id      INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    higher_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    friends_since TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT id_ordering CHECK( lower_id < higher_id)
+);
+
+CREATE VIEW friends_lookup AS (
+    SELECT lower_id AS fst, higher_id AS snd, friends_since FROM friends
+    UNION
+    SELECT higher_id AS fst, lower_id AS snd, friends_since FROM friends
+);
+
+-- TODO: add trigger to make sure users that are already friends cant have an active friend request between each other

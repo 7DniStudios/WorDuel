@@ -1,23 +1,33 @@
 <div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white" >
   <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-    box1
+    <div class="flex flex-col overflow-auto gap-2 h-full">
+      <!-- TODO: tabs for friend requests -->
+      <p class="top-0 sticky bg-zinc-700 p-2"> Friends: </p>
+      <% for(var i=0; i < locals.friends.length; i++) { %>
+        <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+          <div>
+            <a href="/user/<%= locals.friends[i].user_id %>"> <%= locals.friends[i].username %> </a>
+          </div> <!-- TODO: Develop this and make it pretty -->
+        </div>
+      <% } %>
+    </div>
   </div>
   <div class="flex-1/2">
     <div class="flex flex-col h-full gap-2">
       <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
         <ul class="text-left">                           <!-- TODO: Generalize and move to partial views -->
-          <li> Username: <%= locals.public_stats.username %> </li>
-          <li> Player since: <%= locals.public_stats.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
-          <li> Games played: <%= locals.public_stats.games_played %> </li>
-          <li> Games won: <%= locals.public_stats.games_won  %> </li>
+          <li> Username: <%= locals.username %> </li>
+          <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
+          <li> Games played: <%= locals.games_played %> </li>
+          <li> Games won: <%= locals.games_won  %> </li>
         </ul>
       </div>
       <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
         <div id="user-data-box" class="flex flex-col justify-between h-1/1" style="display: block;">
           <ul class="text-left">
-            <li> Username: <%= locals.public_stats.username %> </li>
+            <li> Username: <%= locals.username %> </li>
             <li> Email: <%= locals.email %> </li>
-            <li> Is profile public: <%= locals.public_stats.is_public %> </li>
+            <li> Is profile public: <%= locals.is_public %> </li>
 <!--             <li> Password: ••••••••••</li> -->
           </ul>
           <button id="data-button" class="flex-none self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 w-9/10">
@@ -35,7 +45,7 @@
           <div id="user-data-edit-box" class="flex flex-col justify-between h-1/1" style="display: none;">
               <div class="flex-auto self-start">
                 <label for="username"> username </label>
-                <input id="username-input" type="text" class="bg-gray-100 text-black " name="username" placeholder="username" value="<%- locals.public_stats.username %>" required><br><br>
+                <input id="username-input" type="text" class="bg-gray-100 text-black " name="username" placeholder="username" value="<%- locals.username %>" required><br><br>
               </div>
               <div class="flex-auto">
                 <label for="email"> email </label>
@@ -43,7 +53,7 @@
               </div>
               <div class="flex-auto">
                 <label for="Is profile public"> is_public </label>
-                <input id="is-public-input" type="checkbox" class="bg-gray-100 text-black" name="is_public" value="true" <% if(locals.public_stats.is_public){ %> checked <% } %> ><br><br>
+                <input id="is-public-input" type="checkbox" class="bg-gray-100 text-black" name="is_public" value="true" <% if(locals.is_public){ %> checked <% } %> ><br><br>
               </div>
               <!-- <div class="flex-auto">
                 <input id="pass-input" type="password" class="bg-gray-100 text-black" name="password" placeholder="password"><br><br>
@@ -72,10 +82,10 @@
 
 <script>
   function togglePersonalData() {
-    document.getElementById("username-input").value = "<%- locals.public_stats.username %>";
+    document.getElementById("username-input").value = "<%- locals.username %>";
     document.getElementById("email-input").value = "<%- locals.email %>";
     
-    document.getElementById("is-public-input").checked = <%- locals.public_stats.is_public %> ;
+    document.getElementById("is-public-input").checked = <%- locals.is_public %> ;
     
 /*     document.getElementById("pass-input").value = "";
     document.getElementById("rep-pass-input").value = ""; */

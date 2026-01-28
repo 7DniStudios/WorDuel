@@ -52,3 +52,12 @@ INSERT INTO "users" ("email", "password_hash", "username", "created_at", "games_
     ('WryCerium@example.com', '$2b$10$SkXTjRPTwO2HfRxbpgNFwemmm5W5OpQWB/0rDmcfyCItGxNUpn6Xy', 'WryCerium', '2026-01-18 12:44:46.136633+00', 1, 0, true),
     ('JoblessDysprosium@example.com', '$2b$10$/St.UdjEMN35Y54OoOcpC.U7X5UZ1cO8T7IBn5ADx0L3k6P0gFUlK', 'JoblessDysprosium', '2026-01-18 12:44:46.319365+00', 2, 1, true)
 ;
+
+
+INSERT INTO friends(lower_id, higher_id) VALUES (1, 2), (1, 3);
+
+INSERT INTO friend_requests(sender_id, reciever_id) VALUES (2, 3), (4, 2);
+
+INSERT INTO friends(lower_id, higher_id) VALUES (10, 50), (11, 50), (12, 50), (13, 50), (14, 50), (15, 50),
+ (16, 50), (17, 50), (18, 50), (19, 50), (20, 50), (21, 50), (22, 50), (23, 50), (24, 50), (25, 50)
+;
