@@ -3,7 +3,7 @@ import { logger } from '../logging/logger';
 
 
 export interface FullFriendRequest {
-  request_id: number;
+  id: number;
   sender_id: number;
   reciever_id: number;
   send_time: Date;

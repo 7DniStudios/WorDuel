@@ -50,7 +50,7 @@ async function bootstrap() {
 
   const PORT = process.env.PORT || 3000;
   httpServer.listen(PORT, () => {
-      logger.info(`Server listening on port ${PORT}`);
+    logger.info(`Server listening on port ${PORT}`);
   });
 }
 

@@ -6,14 +6,14 @@ import * as FriendRequestController from '../controller/FriendRequestController'
 
 export const friendRequestRouter = Router();
 
-friendRequestRouter.use(FriendRequestPreprocess)
 
-friendRequestRouter.post("/friend_request/:requestID/accept", FriendRequestController.acceptFriendRequest)
 
-friendRequestRouter.post("/friend_request/:requestID/reject", FriendRequestController.rejectFriendRequest)
+friendRequestRouter.post("/:requestID/accept", FriendRequestPreprocess, FriendRequestController.acceptFriendRequest)
 
-friendRequestRouter.post("/friend_request/:requestID/send", )  //TODO
+friendRequestRouter.post("/:requestID/reject", FriendRequestPreprocess, FriendRequestController.rejectFriendRequest)
 
-friendRequestRouter.post("/friend_request/:requestID/cancel", )  //TODO
+friendRequestRouter.post("/:requestID/send", )  //TODO
+
+friendRequestRouter.post("/:requestID/cancel", )  //TODO
 
 //TODO unfriending people 

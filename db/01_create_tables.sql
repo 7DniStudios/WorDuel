@@ -71,3 +71,31 @@ CREATE VIEW friends_lookup AS (
 );
 
 -- TODO: add trigger to make sure users that are already friends cant have an active friend request between each other
+
+CREATE OR REPLACE FUNCTION accept_friend_request(request_id INTEGER) RETURNS void AS $$
+DECLARE
+    fst_id INTEGER;
+    snd_id INTEGER;
+    temp INTEGER;
+BEGIN
+    SELECT sender_id, reciever_id
+        INTO fst_id, snd_id 
+        FROM friend_requests
+        WHERE id = request_id
+    ;
+    
+    IF snd_id < fst_id THEN
+        temp := fst_id;
+        fst_id := snd_id;
+        snd_id := temp;
+    END IF;
+    
+    
+    DELETE FROM friend_requests WHERE id = request_id;
+    INSERT INTO friends(lower_id, higher_id) VALUES (fst_id, snd_id);
+    
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- TODO: add indexes to things we use in WHERE statement, that are not primary keys or UNIQUE, to speed up queries
