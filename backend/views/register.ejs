@@ -1,6 +1,6 @@
 <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto h-1/1 w-full">
   <div class="flex flex-col items-center justify-center min-w-fit w-full text-white rounded-lg shadow border sm:max-w-md bg-zinc-800 border-gray-700 min-h-fit h-1/2">
-    <form hx-post="/register" hx-swap="innerHTML" hx-target="#message" method="post" class="flex flex-col items-center justify-around block px-4 py-2 text-sm min-h-fit h-4/5">
+    <form hx-post="/auth/register" hx-swap="innerHTML" hx-target="#message" method="post" class="flex flex-col items-center justify-around block px-4 py-2 text-sm min-h-fit h-4/5">
       <div class="flex-none">
         <label>Email:</label><br>
         <input type="text" class="bg-gray-100 text-black" name="email" placeholder="name@example.com" required><br><br>
