@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from "express-serve-static-core";
 
-import * as AuthService from '../service/AuthService';
+import * as UserService from '../service/UserService';
 import { LoginLocals } from '../middleware/AuthMiddleware';
 
 interface UserSiteParams extends ParamsDictionary {
@@ -28,7 +28,7 @@ export async function renderOwnSite(
     next: NextFunction
 ) {
   const user_id = +req.params.userID;
-  const user_data = await AuthService.getUserDataById(user_id);
+  const user_data = await UserService.getUserDataById(user_id);
 
   const isOwn = res.locals.logged_in_user?.user_id === user_id;
   const canShowPage = user_data?.is_public || isOwn;
