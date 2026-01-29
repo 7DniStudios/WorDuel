@@ -36,7 +36,7 @@ export async function getUser(
     };
     next();
   } else {
-    res.status(200).send("Invalid credentials"); // 200 because htmx requires this
+    res.status(200).send("Invalid credentials"); // 200 because htmx requires this // TODO figure out a way around this?
   }
 }
 

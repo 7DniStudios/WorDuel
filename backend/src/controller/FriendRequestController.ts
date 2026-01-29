@@ -1,0 +1,65 @@
+import { Request, Response } from 'express';
+
+import { LoginLocals } from '../middleware/AuthMiddleware';
+import { logger } from '../logging/logger';
+import * as FriendRequestService from '../service/FriendRequestService';
+import { FriendRequestLocals } from '../middleware/FriendRequestMiddleware';
+
+
+export async function acceptFriendRequest(
+  req: Request,
+  res: Response<any, LoginLocals & FriendRequestLocals>
+) {
+  
+  const user_id = res.locals.logged_in_user?.user_id;
+  if (typeof user_id === 'undefined') {
+    /*    This is absurd: this handler  should always be used after FriendRequestPreprocess middleware
+    which already ensures that the user is logged in */
+    logger.error("absurd -- user not logged-in in acceptFriendRequest")
+    throw new Error("Error: absurd -- user not logged-in in acceptFriendRequest")
+  }
+
+  const { request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  
+  if (reciever_id !== user_id) {
+    logger.debug("Tried to accept friend request directed at somebody else");
+    return res.status(403).send("It's not up to you to accept or decline this request");
+  }
+  
+  const {success} = await FriendRequestService.acceptFriendRequest(request_id);
+  if (success){
+    return res.status(200).end()
+  } else {
+    logger.error("Error in accepting friend request");
+    return res.status(500).send("Internal service error -- friend request not accepted");
+  }
+}
+
+export async function rejectFriendRequest(
+  req: Request,
+  res: Response<any, LoginLocals & FriendRequestLocals>
+) {
+  
+  const user_id = res.locals.logged_in_user?.user_id;
+  if (typeof user_id === 'undefined') {
+    /*    This is absurd: this handler should always be used after FriendRequestPreprocess middleware
+    which already ensures that the user is logged in */
+    logger.error("absurd -- user not logged-in in rejectFriendRequest")
+    throw new Error("Error: absurd -- user not logged-in in rejectFriendRequest")
+  }
+
+  const { request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  
+  if (reciever_id !== user_id) {
+    logger.debug("Tried to reject friend request directed at somebody else");
+    return res.status(403).send("It's not up to you to accept or decline this request");
+  }
+  
+  const {success} = await FriendRequestService.rejectFriendRequest(request_id);
+  if (success){
+    return res.status(200).end()
+  } else {
+    logger.error("Error in rejecting friend requests");
+    return res.status(500).send("Internal service error -- friend request not rejected");
+  }
+}
