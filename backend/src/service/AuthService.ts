@@ -38,13 +38,14 @@ export async function registerUser(email: string, passwordPlain: string, usernam
   let hash = await bcrypt.hash(passwordPlain, saltRounds);
 
   try {
-    await db.none(
+    const insertedUser = await db.one(
       `INSERT INTO users(email, password_hash, username)
-        VALUES ($(email), $(hash), $(username))`,
+        VALUES ($(email), $(hash), $(username))
+        RETURNING user_id`,
       { email, hash, username }
     );
 
-    return { success: true, userPayload: /* TODO: get the inserted user id! */ { user_id: 0, username } };
+    return { success: true, userPayload: { user_id: insertedUser.user_id, username } };
   } catch (err) {
     const error = err as PgError;
     if (error.code === UniqueViolation) {
