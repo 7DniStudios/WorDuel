@@ -1,15 +1,47 @@
-<div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white" >
+<div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white h-1/2" >
   <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-    <div class="flex flex-col overflow-auto gap-2 h-full">
-      <!-- TODO: tabs for friend requests -->
-      <p class="top-0 sticky bg-zinc-700 p-2"> Friends: </p>
-      <% for(var i=0; i < locals.friends.length; i++) { %>
-        <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-          <div>
-            <a href="/user/<%= locals.friends[i].user_id %>"> <%= locals.friends[i].username %> </a>
-          </div> <!-- TODO: Develop this and make it pretty -->
-        </div>
-      <% } %>
+    <div class="flex flex-col h-full gap-2">
+      <div id="tab-selectors" class="flex flex-row justify-around">
+        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink active-tablink" onclick="tabClick(event, 'friends-tab')">Friends</button>
+        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink" onclick="tabClick(event, 'send-requests-tab')">Send Requests</button>
+        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink" onclick="tabClick(event, 'recieved-requests-tab')">Recieved Requests</button>
+      </div>
+      <span id="friends-tab" class="overflow-auto tabcontent"><div class="flex flex-col gap-2">
+        <% if(locals.friends.length == 0) { %>
+          <p> You have no friends =( </p>
+        <% } %>
+        <% for(var i=0; i < locals.friends.length; i++) { %>
+          <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+            <div>
+              <a href="/user/<%= locals.friends[i].user_id %>"> <%= locals.friends[i].username %> </a>
+            </div> <!-- TODO: Develop this and make it pretty -->
+          </div>
+        <% } %>
+      </div></span>
+      <span id="send-requests-tab" class="tabcontent" style="display: none"><div class="flex flex-col overflow-auto gap-2 h-full">
+        <% if(locals.sent_friend_requests.length == 0) { %>
+          <p> You have no unanswered send friend requests </p>
+        <% } %>
+        <% for(var i=0; i < locals.sent_friend_requests.length; i++) { %>
+          <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+            <div>
+              <a href="/user/<%= locals.sent_friend_requests[i].user_id %>"> <%= locals.sent_friend_requests[i].username %> </a>
+            </div> <!-- TODO: Develop this and make it pretty -->
+          </div>
+        <% } %>
+      </div></span>
+      <span id="recieved-requests-tab" class="tabcontent" style="display: none"><div class="flex flex-col overflow-auto gap-2 h-full">
+        <% if(locals.received_friend_requests.length == 0) { %>
+          <p> You have no unanswered recieved friend requests </p>
+        <% } %>
+        <% for(var i=0; i < locals.received_friend_requests.length; i++) { %>
+          <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
+            <div>
+              <a href="/user/<%= locals.received_friend_requests[i].user_id %>"> <%= locals.received_friend_requests[i].username %> </a>
+            </div> <!-- TODO: Develop this and make it pretty -->
+          </div>
+        <% } %>
+      </div></span>
     </div>
   </div>
   <div class="flex-1/2">
@@ -106,4 +138,24 @@
   
   document.getElementById("data-button").onclick=togglePersonalData;
   document.getElementById("cancel-button").onclick=togglePersonalData;
+  
+  const tabs = document.getElementsByClassName("tabcontent");
+  tablinks = document.getElementsByClassName("tablink");
+  function tabClick(evt, id){
+    for (i = 0; i < tabs.length; i++) {
+      tabs[i].style.display = "none";
+    }
+    document.getElementById(id).style.display = "block";
+    
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active-tablink", "");
+    }
+    evt.currentTarget.className += " active-tablink";
+  }
 </script>
+
+<style>
+button.active-tablink {
+  background-color: oklch(50% 0.134 242.749);
+}
+</style>
