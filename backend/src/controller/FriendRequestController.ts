@@ -19,7 +19,7 @@ export async function acceptFriendRequest(
     throw new Error("Error: absurd -- user not logged-in in acceptFriendRequest")
   }
 
-  const { request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  const { id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
   
   if (reciever_id !== user_id) {
     logger.debug("Tried to accept friend request directed at somebody else");
@@ -28,7 +28,7 @@ export async function acceptFriendRequest(
   
   const {success} = await FriendRequestService.acceptFriendRequest(request_id);
   if (success){
-    return res.status(200).end()
+    return res.status(200).header("HX-Refresh", "true").end()
   } else {
     logger.error("Error in accepting friend request");
     return res.status(500).send("Internal service error -- friend request not accepted");
@@ -48,7 +48,7 @@ export async function rejectFriendRequest(
     throw new Error("Error: absurd -- user not logged-in in rejectFriendRequest")
   }
 
-  const { request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  const { id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
   
   if (reciever_id !== user_id) {
     logger.debug("Tried to reject friend request directed at somebody else");
