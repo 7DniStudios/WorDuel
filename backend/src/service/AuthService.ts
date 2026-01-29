@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-import { db } from '../config/db';
+import { db, UniqueViolation, PgError } from '../config/db';
 import { logger } from '../logging/logger';
 
 export const jwtSecret = (() => {
@@ -22,12 +22,6 @@ export async function generateToken(user_id: number, username: string): Promise<
 
 // bcrypt setup
 const saltRounds = 10;
-
-const UniqueViolation = '23505';
-interface PgError extends Error {
-  code: string;
-  constraint?: string;
-}
 
 export type RegisterError = 'EMAIL_TAKEN' | 'USERNAME_TAKEN' | 'SERVER_ERROR';
 export type RegisterResult = 

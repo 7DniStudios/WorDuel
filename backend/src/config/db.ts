@@ -30,3 +30,9 @@ export async function bootstrapDB() {
   const res = await db.one<DatabaseTimeResponse>('SELECT NOW() as server_time');
   logger.info(`Test query: 'SELECT NOW()' -> "${res.server_time.toISOString()}".`);
 }
+
+export const UniqueViolation = '23505';
+export interface PgError extends Error {
+  code: string;
+  constraint?: string;
+}
