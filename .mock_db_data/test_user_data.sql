@@ -54,10 +54,25 @@ INSERT INTO "users" ("email", "password_hash", "username", "created_at", "games_
 ;
 
 
-INSERT INTO friends(lower_id, higher_id) VALUES (1, 2), (1, 3);
+INSERT INTO friend_relation(lower_id, higher_id, sender_id, was_accepted, friends_since) VALUES (1, 2, 1, true, NOW()), (1, 3, 1, true, NOW());
 
-INSERT INTO friend_requests(sender_id, reciever_id) VALUES (2, 3), (4, 2);
+INSERT INTO friend_relation(lower_id, higher_id, sender_id) VALUES (2, 3, 2), (2, 4, 4);
 
-INSERT INTO friends(lower_id, higher_id) VALUES (10, 50), (11, 50), (12, 50), (13, 50), (14, 50), (15, 50),
- (16, 50), (17, 50), (18, 50), (19, 50), (20, 50), (21, 50), (22, 50), (23, 50), (24, 50), (25, 50)
+INSERT INTO friend_relation(lower_id, higher_id, sender_id, was_accepted, friends_since) VALUES 
+    (10, 50, 50, true, NOW()),
+    (11, 50, 50, true, NOW()),
+    (12, 50, 50, true, NOW()),
+    (13, 50, 50, true, NOW()),
+    (14, 50, 50, true, NOW()),
+    (15, 50, 50, true, NOW()),
+    (16, 50, 50, true, NOW()),
+    (17, 50, 50, true, NOW()),
+    (18, 50, 50, true, NOW()),
+    (19, 50, 50, true, NOW()),
+    (20, 50, 50, true, NOW()),
+    (21, 50, 50, true, NOW()),
+    (22, 50, 50, true, NOW()),
+    (23, 50, 50, true, NOW()),
+    (24, 50, 50, true, NOW()),
+    (25, 50, 50, true, NOW())
 ;

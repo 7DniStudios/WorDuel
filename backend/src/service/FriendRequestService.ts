@@ -3,10 +3,9 @@ import { logger } from '../logging/logger';
 
 
 export interface FullFriendRequest {
-  id: number;
+  friends_id: number;
   sender_id: number;
   reciever_id: number;
-  send_time: Date;
 }
 
 export interface Result {
@@ -14,13 +13,13 @@ export interface Result {
 }
 
 
-export async function getFriendRequestById(request_id: number): Promise<FullFriendRequest | null> {
+export async function getFriendRequestById(friends_id: number): Promise<FullFriendRequest | null> {
   try {
     const data = await db.oneOrNone<FullFriendRequest>(
-      `SELECT id, sender_id, reciever_id, send_time 
+      `SELECT friends_id, sender_id, reciever_id 
         FROM friend_requests
-        WHERE id = $(request_id)`,
-      { request_id });
+        WHERE friends_id = $(friends_id)`,
+      { friends_id });
 
     return data;
   } catch (err) {
@@ -29,9 +28,9 @@ export async function getFriendRequestById(request_id: number): Promise<FullFrie
   }
 }
 
-export async function acceptFriendRequest(request_id: number): Promise<Result> {
+export async function acceptFriendRequest(friends_id: number): Promise<Result> {
   try {
-    await db.oneOrNone(`SELECT accept_friend_request( $(request_id) )`, { request_id });
+    await db.oneOrNone(`SELECT accept_friend_request( $(friends_id) )`, { friends_id });
     return {success: true};
   } catch (err) {
     logger.error("Error in FriendRequestService.acceptFriendRequest:", err);
@@ -39,9 +38,9 @@ export async function acceptFriendRequest(request_id: number): Promise<Result> {
   }
 }
 
-export async function deleteFriendRequest(request_id: number): Promise<Result> {
+export async function deleteFriendRequest(friends_id: number): Promise<Result> {
   try {
-    await db.none(`DELETE FROM friend_requests WHERE id = $(request_id)`, {request_id});
+    await db.none(`DELETE FROM friend_relation WHERE friends_id = $(friends_id)`, {friends_id});
     return {success: true};
   } catch (err) {
     logger.error("Error in FriendRequestService.deleteFriendRequest:", err);

@@ -30,7 +30,7 @@
             <div class="flex flex-row justify-around gap-2">
               <a href="/user/<%= locals.sent_friend_requests[i].user_id %>"> <%= locals.sent_friend_requests[i].username %> </a>
               <button
-                hx-post="/friend_request/<%= locals.sent_friend_requests[i].id %>/cancel"
+                hx-post="/friend_request/<%= locals.sent_friend_requests[i].friends_id %>/cancel"
                 hx-swap="outerHTML"
                 hx-target="#sent-req-<%= i %>"
                 class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
@@ -49,14 +49,14 @@
             <div class="flex flex-row justify-around gap-2">
               <a href="/user/<%= locals.received_friend_requests[i].user_id %>"> <%= locals.received_friend_requests[i].username %> </a>
               <button
-                hx-post="/friend_request/<%= locals.received_friend_requests[i].id %>/accept"
+                hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/accept"
                 hx-swap="outerHTML"
                 hx-target="#recieved-req-<%= i %>"
                 class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
                 Accept
               </button>
               <button
-                hx-post="/friend_request/<%= locals.received_friend_requests[i].id %>/reject"
+                hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/reject"
                 hx-swap="outerHTML"
                 hx-target="#recieved-req-<%= i %>"
                 class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
