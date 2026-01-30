@@ -1,6 +1,9 @@
 <div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white h-1/2" >
   <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
     <div class="flex flex-col overflow-auto gap-2 h-full">
+      <% if(locals.logged_in_user){ %>
+        <%- include('partials/interactive_friends_button') %>
+      <% } %>
       <p class="top-0 sticky bg-zinc-700 p-2"> Friends: </p>
       <% for(var i=0; i < locals.friends.length; i++) { %>
         <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
@@ -14,7 +17,7 @@
   <div class="flex-1/2">
     <div class="flex flex-col h-full gap-2">
       <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-        <ul class="text-left">                           <!-- Generalize and move to partial views -->
+        <ul class="text-left">                           <!-- TODO: Generalize and move to partial views -->
           <li> Username: <%= locals.username %> </li>
           <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
           <li> Games played: <%= locals.games_played %> </li>

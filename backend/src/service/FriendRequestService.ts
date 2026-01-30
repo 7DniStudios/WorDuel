@@ -47,3 +47,41 @@ export async function deleteFriendRequest(friends_id: number): Promise<Result> {
     return {success: false};
   }
 }
+
+export async function sendFriendRequest(sender_id: number, reciever_id: number): Promise<Result> {
+  
+  var lower_id, higher_id;
+  
+  if (sender_id < reciever_id){
+    lower_id = sender_id;
+    higher_id = reciever_id;
+  } else {
+    lower_id = reciever_id;
+    higher_id = sender_id;
+  }
+  
+  try {
+    await db.none(
+      `INSERT INTO friend_relation(lower_id, higher_id, sender_id) VALUES
+        ($(lower_id), $(higher_id), $(sender_id))`,
+       {lower_id, higher_id, sender_id});
+    return {success: true};
+  } catch (err) {
+    logger.error("Error in FriendRequestService.sendFriendRequest:", err);
+    return {success: false};  // TODO: mark if the failure was server's or clients fault
+  }
+}
+
+export async function unfriend(user_id: number, friends_id: number): Promise<Result> {
+  try {
+    await db.none(
+      `DELETE FROM friend_relation 
+        WHERE friends_id = $(friends_id) 
+        AND (lower_id = $(user_id) OR higher_id = $(user_id))`,
+        {friends_id, user_id});
+    return {success: true};
+  } catch (err) {
+    logger.error("Error in FriendRequestService.unfriend  :", err);
+    return {success: false};
+  }
+}
