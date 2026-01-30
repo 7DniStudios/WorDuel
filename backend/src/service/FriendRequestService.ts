@@ -39,12 +39,12 @@ export async function acceptFriendRequest(request_id: number): Promise<Result> {
   }
 }
 
-export async function rejectFriendRequest(request_id: number): Promise<Result> {
+export async function deleteFriendRequest(request_id: number): Promise<Result> {
   try {
     await db.none(`DELETE FROM friend_requests WHERE id = $(request_id)`, {request_id});
     return {success: true};
   } catch (err) {
-    logger.error("Error in FriendRequestService.rejectFriendRequest:", err);
+    logger.error("Error in FriendRequestService.deleteFriendRequest:", err);
     return {success: false};
   }
 }

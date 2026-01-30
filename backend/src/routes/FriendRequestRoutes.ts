@@ -12,8 +12,8 @@ friendRequestRouter.post("/:requestID/accept", FriendRequestPreprocess, FriendRe
 
 friendRequestRouter.post("/:requestID/reject", FriendRequestPreprocess, FriendRequestController.rejectFriendRequest)
 
-friendRequestRouter.post("/:requestID/send", )  //TODO
+friendRequestRouter.post("/send/:userID", )  //TODO
 
-friendRequestRouter.post("/:requestID/cancel", )  //TODO
+friendRequestRouter.post("/:requestID/cancel", FriendRequestPreprocess, FriendRequestController.cancelFriendRequest)
 
 //TODO unfriending people 
