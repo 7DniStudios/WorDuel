@@ -64,6 +64,35 @@ export async function rejectFriendRequest(
   }
 }
 
+export async function sendFriendRequest(
+  req: Request,
+  res: Response<any, LoginLocals >
+) {
+
+  const user_id = res.locals.logged_in_user?.user_id;
+  if (typeof user_id === 'undefined') {
+    logger.debug("Not logged in user is attempting to send a friend request");
+    return res.status(401).send("You need to be logged in to send a friend request");
+  }
+  
+  const reciever_id = +req.params.recieverID;
+    
+  if (Number.isNaN(reciever_id)) {
+    logger.debug(`Friend request id is ${req.params.requestID}, but should be an integer`);
+    return res.status(404).end();
+  }
+  
+  const {success} = await FriendRequestService.sendFriendRequest(user_id, reciever_id);
+  if (success){
+    return res.status(200).end()
+  } else {
+    logger.error("Error in sending a friend request");
+    return res.status(400).send("Friend request not send");
+  }
+  
+}
+
+
 export async function cancelFriendRequest(
   req: Request,
   res: Response<any, LoginLocals & FriendRequestLocals>
@@ -91,4 +120,31 @@ export async function cancelFriendRequest(
     logger.error("Error in cancelling a friend request");
     return res.status(500).send("Internal service error -- friend request not cancelled");
   }
+}
+
+export async function unfriend(
+  req: Request,
+  res: Response<any, LoginLocals>
+) {
+  const request_id = +req.params.requestID;
+  
+  if (Number.isNaN(request_id)) {
+    logger.debug(`Friend request id is ${req.params.requestID}, but should be an integer`);
+    return res.status(404).end();
+  }
+  if (res.locals.logged_in_user === null) {
+    logger.debug("A user that is not logged in cannot interact with friend request");
+    return res.status(401).end();
+  }
+  
+  const user_id = res.locals.logged_in_user.user_id;
+
+  const {success} = await FriendRequestService.unfriend(user_id, request_id);
+  if (success){
+    return res.status(200).end()
+  } else {
+    logger.error("Error in unfriending");
+    return res.status(500).send("Internal server error");
+  }
+  
 }
