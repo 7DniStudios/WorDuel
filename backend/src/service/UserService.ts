@@ -25,10 +25,9 @@ export interface FriendData {
 }
 
 export interface FriendRequest {
-  id: number;
+  friends_id: number;
   username: string;
   user_id: number;
-  send_time: Date;
 }
 
 export async function getFriends(user_id: number): Promise<FriendData[]> {
@@ -42,7 +41,7 @@ export async function getFriends(user_id: number): Promise<FriendData[]> {
 
 export async function getSentFriendRequests(user_id: number): Promise<FriendRequest[]> {
   try {
-    return await db.manyOrNone<FriendRequest>('SELECT id, username, user_id, send_time FROM users JOIN friend_requests ON (user_id=reciever_id) WHERE sender_id = $(user_id);', { user_id });
+    return await db.manyOrNone<FriendRequest>('SELECT friends_id, username, user_id FROM users JOIN friend_requests ON (user_id=reciever_id) WHERE sender_id = $(user_id);', { user_id });
   } catch (err) {
     logger.error("Error in getSentFriendRequests:", err);
     return [];
@@ -51,7 +50,7 @@ export async function getSentFriendRequests(user_id: number): Promise<FriendRequ
 
 export async function getReceivedFriendRequests(user_id: number): Promise<FriendRequest[]> {
   try {
-    return await db.manyOrNone<FriendRequest>('SELECT id, username, user_id, send_time FROM users JOIN friend_requests ON (user_id=sender_id) WHERE reciever_id = $(user_id);', { user_id });
+    return await db.manyOrNone<FriendRequest>('SELECT friends_id, username, user_id FROM users JOIN friend_requests ON (user_id=sender_id) WHERE reciever_id = $(user_id);', { user_id });
   } catch (err) {
     logger.error("Error in getReceivedFriendRequests:", err);
     return [];

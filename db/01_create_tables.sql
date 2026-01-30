@@ -46,56 +46,41 @@ CREATE TABLE users (
 );
 
 
-CREATE TABLE friend_requests (
-    id          INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    sender_id   INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    reciever_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    send_time   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT sender_reciever_different CHECK (sender_id != reciever_id)
-);
-
-CREATE TABLE friends(
+CREATE TABLE friend_relation(
     friends_id    INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     lower_id      INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     higher_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    friends_since TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sender_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    was_accepted  BOOLEAN NOT NULL DEFAULT false,
+    friends_since TIMESTAMP DEFAULT NULL,
     
-    CONSTRAINT id_ordering CHECK( lower_id < higher_id)
+    CONSTRAINT sender_is_one_of_participants CHECK(sender_id = lower_id OR sender_id = higher_id),
+    CONSTRAINT id_ordering CHECK( lower_id < higher_id),
+    CONSTRAINT no_repeated_friendships UNIQUE (lower_id, higher_id)
+);
+
+CREATE VIEW friend_requests AS (
+    SELECT friends_id, sender_id, (lower_id + higher_id - sender_id) AS reciever_id -- I am unsure if this is a good solution but it works and should be faster than an IF statement
+        FROM friend_relation WHERE was_accepted = false
 );
 
 CREATE VIEW friends_lookup AS (
-    SELECT lower_id AS fst, higher_id AS snd, friends_since FROM friends
+    SELECT friends_id, lower_id AS fst, higher_id AS snd, friends_since FROM friend_relation WHERE was_accepted = true
     UNION
-    SELECT higher_id AS fst, lower_id AS snd, friends_since FROM friends
+    SELECT friends_id, higher_id AS fst, lower_id AS snd, friends_since FROM friend_relation WHERE was_accepted = true
 );
 
--- TODO: add trigger to make sure users that are already friends cant have an active friend request between each other
+-- TODO: add indexes to things we use in WHERE statement, that are not primary keys or UNIQUE, to speed up queries
+
 
 CREATE OR REPLACE FUNCTION accept_friend_request(request_id INTEGER) RETURNS void AS $$
-DECLARE
-    fst_id INTEGER;
-    snd_id INTEGER;
-    temp INTEGER;
 BEGIN
-    SELECT sender_id, reciever_id
-        INTO fst_id, snd_id 
-        FROM friend_requests
-        WHERE id = request_id
-    ;
-    
-    IF snd_id < fst_id THEN
-        temp := fst_id;
-        fst_id := snd_id;
-        snd_id := temp;
+    IF EXISTS (SELECT 1 FROM friend_relation WHERE friends_id = request_id AND was_accepted = true) THEN
+        RAISE EXCEPTION 'Friendship relation with id % is already accepted', request_id; -- add USING ERRORCODE '<coś>' for better error handling
     END IF;
     
-    
-    DELETE FROM friend_requests WHERE id = request_id;
-    INSERT INTO friends(lower_id, higher_id) VALUES (fst_id, snd_id);
-    
+    UPDATE friend_relation SET was_accepted = true, friends_since = NOW() WHERE friends_id = request_id; 
 END;
 $$ LANGUAGE plpgsql;
 
 
--- TODO: add indexes to things we use in WHERE statement, that are not primary keys or UNIQUE, to speed up queries

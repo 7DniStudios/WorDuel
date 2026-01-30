@@ -19,7 +19,7 @@ export async function acceptFriendRequest(
     throw new Error("Error: absurd -- user not logged-in in acceptFriendRequest")
   }
 
-  const { id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  const { friends_id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
   
   if (reciever_id !== user_id) {
     logger.debug("Tried to accept friend request directed at somebody else");
@@ -48,7 +48,7 @@ export async function rejectFriendRequest(
     throw new Error("Error: absurd -- user not logged-in in rejectFriendRequest")
   }
 
-  const { id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  const { friends_id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
   
   if (reciever_id !== user_id) {
     logger.debug("Tried to reject friend request directed at somebody else");
@@ -77,7 +77,7 @@ export async function cancelFriendRequest(
     throw new Error("Error: absurd -- user not logged-in in cancelFriendRequest")
   }
 
-  const { id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
+  const { friends_id: request_id, sender_id, reciever_id } = res.locals.friend_request_data;
   
   if (sender_id !== user_id) {
     logger.debug(` user ${user_id} tried to cancel a friend request that was not send by them`);
