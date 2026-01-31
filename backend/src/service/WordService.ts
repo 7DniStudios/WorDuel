@@ -1,5 +1,6 @@
 import { ITask } from 'pg-promise';
 import { db } from '../config/db';
+
 import { logger } from '../logging/logger';
 
 interface WordRecord {
@@ -37,6 +38,16 @@ export async function drawRandomWord(languageSanitized: string): Promise<WordRec
   });
 }
 
+export function sanitizeWord(input: string): string {
+  return input.trim().toLowerCase();
+}
+
+export function isValidWord(word: string, expectedLength: number): boolean {
+  const sanitized = sanitizeWord(word);
+  const regex = new RegExp(`^[a-ząćęłńóśźż]{${expectedLength}}$`);
+  return regex.test(sanitized);
+}
+
 type WordExists =
   | { exists: true }
   // TODO: Add 'exists in another language' case.
@@ -53,6 +64,7 @@ export async function checkWordExists(languageSanitized: string, wordSanitized: 
         word: wordSanitized
       }
     );
+
     if (result !== null) {
       return { exists: true };
     } else {

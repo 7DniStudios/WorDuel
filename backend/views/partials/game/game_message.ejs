@@ -1,0 +1,14 @@
+<div
+  id="game-message"
+  
+  <% if (locals.swap) { %> hx-swap-oob="true" <% } %>
+
+  class="h-10 text-center p-2 flex-grow rounded m-4 text-white <%
+    if (message) { %>
+      bg-red-600 
+    <% } else { %>
+      bg-transparent 
+    <% } %> fade-out"
+>
+    <%= message %>
+</div>

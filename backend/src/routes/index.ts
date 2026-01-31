@@ -2,12 +2,14 @@ import { Router } from 'express';
 
 import { authRouter } from './AuthRoutes';
 import { userRouter } from './UserRoutes';
+import { gameRouter } from './GameRoutes';
 
 export const mainRouter = Router();
 
 mainRouter.get('/', (_, res) => res.render('index'));
 mainRouter.use('/auth', authRouter);
 mainRouter.use('/user', userRouter);
+mainRouter.use('/game', gameRouter);
 
 // TODO: Remove this! This is a debug route to test HTMX.
 mainRouter.get('/toggle', (req, res) => {

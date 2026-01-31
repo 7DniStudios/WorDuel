@@ -2,3 +2,12 @@
 
 <%- include('partials/test_button', { label: 'Ping' }) %>
 
+<button
+    hx-post="/game/create"
+    hx-swap="none"
+    class="bg-green-500 hover:bg-green-700 text-white p-4 rounded">
+    
+    <span class="htmx-indicator">⌛</span>
+
+    Create and Join Game
+</button>

@@ -8,12 +8,14 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 import { bootstrapDB } from './config/db';
-import { logger } from './logging/logger';
+import { initWebSocket } from './socket';
+
 import { morganMiddleware } from './middleware/morgan';
+import { readSessionCookies } from './middleware/AuthMiddleware';
 
 import { mainRouter } from './routes/index';
 
-import { readSessionCookies } from './middleware/AuthMiddleware';
+import { logger } from './logging/logger';
 
 const app = express();
 
@@ -41,6 +43,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 const httpServer = createServer(app);
+initWebSocket(httpServer);
 
 async function bootstrap() {
   await bootstrapDB();

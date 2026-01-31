@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.18",
+    "async-mutex": "^0.5.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -19,9 +20,10 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "pg-promise": "^12.3.0",
-    "socket.io": "^4.7.4",
     "tailwindcss": "^4.1.18",
-    "winston": "^3.19.0"
+    "uuid": "^13.0.0",
+    "winston": "^3.19.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -34,7 +36,8 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^20.11.16",
     "@types/pg-promise": "^0.0.28",
-    "@types/socket.io": "^3.0.1",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "dotenv-cli": "^11.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
