@@ -51,4 +51,7 @@ async function bootstrap() {
   });
 }
 
-bootstrap().catch(err => logger.error('Error during database bootstrap', err));
+bootstrap().catch((err) => {
+  logger.error('Failed to bootstrap application', err);
+  process.exit(1);
+});
