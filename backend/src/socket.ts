@@ -2,7 +2,10 @@ import { Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import ejs from 'ejs';
 import path from 'path';
+import { parse, Cookies } from 'cookie';
+
 import * as GameService from './service/GameService';
+import * as AuthService from './service/AuthService';
 import { logger } from './logging/logger';
 
 function getWordErrorMessage(error: GameService.GuessError): string {
@@ -17,6 +20,31 @@ function getWordErrorMessage(error: GameService.GuessError): string {
     default:
       return 'Server error occurred.';
   }
+}
+
+// Returns user ID if logged in, null otherwise; Needed for non-middleware contexts (webSockets)
+function getUserId(cookies: Cookies): number | null {
+  if (cookies.worduelSessionCookie === undefined) {
+    return null;
+  }
+
+  const sessionCookie = cookies.worduelSessionCookie as string;
+  if (!sessionCookie){
+    return null;
+  }
+
+  const payload = AuthService.verifyToken(sessionCookie);
+  if (payload !== null) {
+    return payload.user_id;
+  }
+  return null;
+}
+
+function getGuestId(cookies: Cookies): string | null {
+  if (cookies.worduelGuestId === undefined) {
+    return null;
+  }
+  return cookies.worduelGuestId as string;
 }
 
 // TODO: Implement DDoS protection, rate limiting, etc.
@@ -42,6 +70,25 @@ export const initWebSocket = (server: HttpServer) => {
   }
 
   wss.on('connection', (ws: WebSocket, req) => {
+    // Authentication in WS connect is needed as well because 'direct' websocket connections are possible.
+    let playerCredentials : null | GameService.PlayerGameId = null;
+    const cookies = parse(req.headers.cookie || '');
+    const loggedInUserId = getUserId(cookies);
+    if (loggedInUserId !== null) {
+      playerCredentials = { type: 'USER', userId: loggedInUserId as number };
+    } else {
+      const guestId = getGuestId(cookies);
+      if (guestId !== null) {
+        playerCredentials = { type: 'GUEST', guestId: guestId as string };
+      }
+    }
+
+    if (playerCredentials === null) {
+      logger.error('WS: Could not identify player, closing connection');
+      ws.close();
+      return;
+    }
+
     // This is iffy...
     const urlParts = req.url?.split('/');
     const gameId = urlParts ? urlParts[urlParts.length - 1] : null;
@@ -53,8 +100,15 @@ export const initWebSocket = (server: HttpServer) => {
       return;
     }
 
+    if (!GameService.isPlayerInGame(gameState, playerCredentials)) {
+      logger.error('WS: Player not part of this game, closing connection');
+      logger.debug(`Player credentials: ${JSON.stringify(playerCredentials)}\nGame Host: ${JSON.stringify(gameState.host)}\nGame Guest: ${JSON.stringify(gameState.guest)}`);
+      ws.close();
+      return;
+    }
+
     gameState.clients.add(ws);
-    logger.info(`WS: Client connected to game ${gameId}`);
+    logger.info(`WS: Client ${JSON.stringify(playerCredentials)} connected to game ${gameId}`);
     
     ws.on('message', async (message) => {
       try {

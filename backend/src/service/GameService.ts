@@ -1,24 +1,46 @@
 import { checkWordExists, isValidWord } from "./WordService";
 import { WebSocket } from 'ws';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Mutex } from 'async-mutex';
 
 import { logger } from "../logging/logger";
+
+export type PlayerGameId = 
+  | { type: 'USER'; userId: number }
+  | { type: 'GUEST'; guestId: string };
+
+export function playerGameIdToString(playerId: PlayerGameId): string {
+  if (playerId.type === 'USER') {
+    return `USER_${playerId.userId}`;
+  } else {
+    return `GUEST_${playerId.guestId}`;
+  }
+}
 
 // TODO: Make the state persistent.
 export interface GameState {
   id: string;
   guesses: string[];
   mutex: Mutex;
+
   word_length: number;
   language: string;
+
+  host: PlayerGameId;
+  guest: PlayerGameId | null;
+
   last_updated: Date;
   clients: Set<WebSocket>;
 }
 
 const games = new Map<string, GameState>();
 
-export function createGame(gameId: string) {
+// FIFO queue of IDs of public games (joinable by anyone).
+const publicGames: string[] = [];
+
+export function createGame(playerId: PlayerGameId) : string {
+  const gameId = uuidv4();
   games.set(gameId, {
     id: gameId,
     guesses: [],
@@ -27,10 +49,68 @@ export function createGame(gameId: string) {
     word_length: 8,
     // TODO: Parameterize language selection.
     language: 'PL',
+
+    host: playerId,
+    guest: null,
+
     last_updated: new Date(),
     clients: new Set<WebSocket>(),
   });
+
+  logger.info(`GameService: Created game with ID ${gameId}`);
+  publicGames.push(gameId);
+
+  return gameId;
 };
+
+export async function joinPublicGame(playerId: PlayerGameId) : Promise<string | null> {
+  while (publicGames.length > 0) {
+    const gameId = publicGames.shift() as string;
+    const game = games.get(gameId);
+    if (!game) {
+      continue;
+    }
+
+    const result = await game.mutex.runExclusive(() => {
+      if (game.host === playerId) {
+        logger.info(`GameService: Host re-joined public game with ID ${gameId}`);
+        publicGames.unshift(gameId);
+        return gameId;
+      }
+
+      if (game.guest === null) {
+        game.guest = playerId;
+        logger.info(`GameService: Guest joined public game with ID ${gameId}`);
+        return gameId;
+      }
+
+      return null;
+    });
+
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
+}
+
+export function playerGameIdEquals(a: PlayerGameId, b: PlayerGameId): boolean {
+  if (a.type !== b.type) {
+    return false;
+  }
+
+  if (a.type === 'USER') {
+    return a.userId === (b as { type: 'USER'; userId: number }).userId;
+  } else {
+    return a.guestId === (b as { type: 'GUEST'; guestId: string }).guestId;
+  }
+}
+
+export function isPlayerInGame(game: GameState, playerId: PlayerGameId): boolean {
+  return playerGameIdEquals(game.host, playerId)
+    || (game.guest !== null && playerGameIdEquals(game.guest, playerId));
+}
 
 export type GuessError = 'INVALID_WORD' | 'WORD_NOT_FOUND' | 'WORD_USED' | 'SERVER_ERROR';
 export type GuessResult =

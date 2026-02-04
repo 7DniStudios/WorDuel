@@ -1,8 +1,8 @@
 
 import { NextFunction, Request, Response } from 'express';
 
-import { logger } from '../logging/logger';
 import * as AuthService from '../service/AuthService';
+import { logger } from '../logging/logger';
 
 export interface LoginInput {
   email: string;
@@ -49,7 +49,7 @@ export function readSessionCookies(
   res: Response<any, LoginLocals>,
   next: NextFunction) {
   // we are using unsigned cookies, because jwt is already secure
-  const sessionCookie = req.cookies.worduelSessionCookie  as string; 
+  const sessionCookie = req.cookies.worduelSessionCookie as string;
   if (!sessionCookie){
     res.locals.logged_in_user = null;
     return next();
