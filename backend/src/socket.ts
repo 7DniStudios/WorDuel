@@ -148,7 +148,7 @@ export const initWebSocket = (server: HttpServer) => {
             { message: errorMessage, swap: true }
           );
 
-          ws.send(clearInput + gameMessage);
+          ws.send(gameMessage);
         }
 
       } catch (err) {
