@@ -2,7 +2,6 @@
 import { NextFunction, Request, Response } from 'express';
 
 import * as AuthService from '../service/AuthService';
-import { logger } from '../logging/logger';
 
 export interface LoginInput {
   email: string;
@@ -36,7 +35,11 @@ export async function getUser(
     };
     next();
   } else {
-    res.status(200).send("Invalid credentials"); // 200 because htmx requires this // TODO figure out a way around this?
+    // res.status(200).send("Invalid credentials"); // 200 because htmx requires this // TODO figure out a way around this?
+    res.render(
+      "partials/alert/error",
+      { message: "Invalid credentials", id: "alert-message", swap: false, layout: false }
+    );
   }
 }
 
