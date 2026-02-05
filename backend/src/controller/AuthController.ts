@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import ejs from 'ejs';
+import path from 'path';
 
 import { logger } from '../logging/logger';
 import * as AuthService from '../service/AuthService';
@@ -24,6 +26,15 @@ function registerErrorToMessage(error: AuthService.RegisterError): string {
   }
 }
 
+function getErrorPopupSetup(message: string): { id: string, message: string, swap: boolean, layout: boolean } {
+  return {
+    id: "alert-message",
+    message,
+    swap: true,
+    layout: false
+  };
+}
+
 export async function registerUser( 
   req: Request<{}, {}, RegisterInput>,
   res: Response
@@ -34,22 +45,30 @@ export async function registerUser(
   // TODO: Make this into a monad.
   if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
     const message = "Invalid input types.";
-    return res.status(200).send( message );
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 
   if (username.length < 2 || username.length > 50) {
     const message = "Invalid username length. Must be between 2 and 50 characters.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/warning",
+      getErrorPopupSetup(message));
   }
 
   if (email.length > 200) {
     const message = "Email too long. Max 200 characters.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/warning",
+      getErrorPopupSetup(message));
   }
 
   if (password.length < 8 || password.length > 100) {
     const message = "Invalid password length. Must be between 8 and 100 characters.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/warning",
+      getErrorPopupSetup(message));
   }
 
   const registerResult = await AuthService.registerUser(email, password, username);
@@ -58,7 +77,9 @@ export async function registerUser(
     return res.header("HX-Redirect", "/auth/login").status(200).end();
   } else {
     let message = registerErrorToMessage(registerResult.error);
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 }
 
