@@ -1,0 +1,25 @@
+<el-dropdown class="relative inline-flex">
+
+  <span class="inline-flex overflow-hidden bg-white">
+    <!-- No shadow is generated for this button, no idea why... -->
+    <button type="button" class="inline-flex items-center gap-2 cursor-pointer border-2 border-black bg-white px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:bg-yellow-300 hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none">
+      <p> <%= logged_in_user.username %> </p>
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+      </svg>
+    </button>
+  </span>
+
+  <el-menu anchor="bottom end" popover
+    class="absolute end-0 top-12 z-auto w-56 overflow-hidden border-2 border-black bg-white font-bold font-black">
+
+    <a href="/user/<%= logged_in_user.user_id %>" class="block px-3 py-2 text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-gray-800" role="menuitem">
+      <u>My Page</u>
+    </a>
+
+    <a href="/auth/logout" class="block px-3 py-2 text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-gray-800" role="menuitem">
+      <u>Logout</u>
+    </a>
+  </el-menu>
+</el-dropdown>
