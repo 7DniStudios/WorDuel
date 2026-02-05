@@ -1,38 +1,48 @@
 <div id="interactive-friend-button-wrapper">
-  <% if(locals.friendship_status.status === 'none'){ %>
-    <button
-      id = "interactive-friend-button"
-      hx-post="/friend_request/send/<%= locals.user_id %>"
-      hx-swap="none"
-      class="self-end outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
-      Send Friend Request
-    </button>
-  <% } else if(locals.friendship_status.status === 'friends'){ %>
-    <!-- XXX: currently unimplemented -->
-    <button
-      id = "interactive-friend-button"
-      hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/unfriend" 
-      hx-swap="none"
-      class="self-end outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
-      Unfriend
-    </button>
-  <% } else if(locals.friendship_status.status === 'request_send'){ %>
-    <button
-      id = "interactive-friend-button"
-      hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/cancel" 
-      hx-swap="none"
-      class="self-end outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
-      cancel friend request
-    </button>
-  <% } else if(locals.friendship_status.status === 'request_recieved'){ %>
-    <button
-      id = "interactive-friend-button"
-      hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/accept" 
-      hx-swap="none"
-      class="self-end outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
-      accept friend request
-    </button>
-  <% } %>
+  <button
+  id = "interactive-friend-button"
+  hx-swap="none"
+  class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none
+    <% if(locals.friendship_status.status === 'none'){ %>
+
+      bg-green-50 hover:bg-green-300
+
+    <% } else if(locals.friendship_status.status === 'friends'){ %>
+
+      bg-red-50 hover:bg-red-300
+
+    <% } else if(locals.friendship_status.status === 'request_send'){ %>
+
+      bg-yellow-50 hover:bg-yellow-300
+
+    <% } else if(locals.friendship_status.status === 'request_recieved'){ %>
+
+      bg-green-50 hover:bg-green-300
+
+    <% } %>"
+
+      <% if(locals.friendship_status.status === 'none'){ %>
+
+        hx-post="/friend_request/send/<%= locals.user_id %>"
+        > Send Friend Request
+
+      <% } else if(locals.friendship_status.status === 'friends'){ %>
+
+        hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/unfriend" 
+        > Unfriend
+
+      <% } else if(locals.friendship_status.status === 'request_send'){ %>
+
+        hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/cancel" 
+        > Cancel Friend Request
+
+      <% } else if(locals.friendship_status.status === 'request_recieved'){ %>
+
+        hx-post="/friend_request/<%= locals.friendship_status.friends_id %>/accept"
+        > Accept Friend Request
+
+      <% } %>
+  </button>
   
   <div 
     id="interactive-friend-button-refresher"
@@ -40,6 +50,7 @@
     hx-trigger="click from:#interactive-friend-button"
     hx-swap="outerHTML"
     hx-target="#interactive-friend-button-wrapper"
-    hx-sync="#interactive-friend-button:queue last">
+    hx-sync="#interactive-friend-button:queue last"
+    class="hidden">
   </div>
 </div>
