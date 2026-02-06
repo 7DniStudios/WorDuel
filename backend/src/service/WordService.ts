@@ -3,7 +3,7 @@ import { db } from '../config/db';
 
 import { logger } from '../logging/logger';
 
-interface WordRecord {
+export interface WordRecord {
     word_id: number;
     word: string;
     lang: string;

@@ -6,7 +6,7 @@ import * as GameService from '../service/GameService';
 
 import { logger } from '../logging/logger';
 
-const getPlayerIdIfExists = (req: Request, res: Response): GameService.PlayerGameId | null => {
+function getPlayerIdIfExists(req: Request, res: Response): GameService.PlayerGameId | null {
   if (res.locals.logged_in_user) {
     return { type: 'USER', userId: res.locals.logged_in_user.user_id };
   }
@@ -18,7 +18,7 @@ const getPlayerIdIfExists = (req: Request, res: Response): GameService.PlayerGam
   return null;
 };
 
-const getPlayerId = (req: Request, res: Response): GameService.PlayerGameId => {
+function getPlayerId(req: Request, res: Response): GameService.PlayerGameId {
   const existingPlayerId = getPlayerIdIfExists(req, res);
   if (existingPlayerId) {
     return existingPlayerId;
@@ -30,8 +30,8 @@ const getPlayerId = (req: Request, res: Response): GameService.PlayerGameId => {
   return { type: 'GUEST', guestId: newGuestId };
 };
 
-export const createAndJoinGame = (req: Request, res: Response) => {
-  const gameId = GameService.createGame(getPlayerId(req, res));
+export async function createAndJoinGame(req: Request, res: Response) {
+  const gameId = await GameService.createGame(getPlayerId(req, res));
 
   res.set('HX-Redirect', `/game/${gameId}`);
   res.send();
@@ -41,7 +41,7 @@ export async function createOrJoinGame(req: Request, res: Response) {
   const playerId = getPlayerId(req, res);
   let gameId: string | null = await GameService.joinPublicGame(playerId);
   if (!gameId) {
-    gameId = GameService.createGame(playerId);
+    gameId = await GameService.createGame(playerId);
   }
 
   res.set('HX-Redirect', `/game/${gameId}`);
@@ -52,7 +52,7 @@ interface GameSiteParams extends ParamsDictionary {
   game_id: string
 };
 
-export const renderGameRoom = (req: Request<GameSiteParams>, res: Response) => {
+export async function renderGameRoom(req: Request<GameSiteParams>, res: Response) {
   const gameId = req.params.game_id;
   const game = GameService.getGame(gameId);
 

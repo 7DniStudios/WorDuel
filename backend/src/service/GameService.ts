@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Mutex } from 'async-mutex';
 
+import * as WordService from "./WordService";
 import { logger } from "../logging/logger";
 
 export type PlayerGameId = 
@@ -28,8 +29,13 @@ export interface Guess {
 // TODO: Make the state persistent.
 export interface GameState {
   id: string;
-  guesses: Guess[];
   mutex: Mutex;
+
+  secret_word: WordService.WordRecord;
+  left_to_guess: boolean[]; // position -> Was this letter guessed?
+  used_for_guesses: Set<string>; // For a given char - was it used for a guess?
+
+  guesses: Guess[];
 
   word_length: number;
   language: string;
@@ -46,13 +52,24 @@ const games = new Map<string, GameState>();
 // FIFO queue of IDs of public games (joinable by anyone).
 const publicGames: string[] = [];
 
-export function createGame(playerId: PlayerGameId) : string {
+export async function createGame(playerId: PlayerGameId) : Promise<string> {
   const gameId = uuidv4();
+
+  const word = await WordService.drawRandomWord('PL');
+  const leftToGuess = new Array(word.word.length).fill(true);
+
+  logger.info(`GameService: Creating game with ID ${gameId} and secret word '${word.word}' for player ${playerGameIdToString(playerId)}`);
+
   games.set(gameId, {
     id: gameId,
-    guesses: [],
     // NOTE: We might prefere a queue here but for two players mutex should be fine.
     mutex: new Mutex(),
+
+    secret_word: word,
+    left_to_guess: leftToGuess,
+    used_for_guesses: new Set<string>(),
+
+    guesses: [],
     word_length: 8,
     // TODO: Parameterize language selection.
     language: 'PL',
@@ -128,9 +145,55 @@ export function includesGuess(game: GameState, word: string): boolean {
   return game.guesses.some(guess => guess.word === word);
 }
 
+function isLetterNotKnown(game: GameState, char: string): boolean {
+  for (let i = 0; i < game.left_to_guess.length; i++) {
+    if (game.left_to_guess[i] && game.secret_word.word[i] === char) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function createGuess(game: GameState, word: string): Guess {
-  const letters = word.split('').map(char => ({ char, state: 'ABSENT' as GuessState }));
-  return { word, letters };
+  const guess: Guess = {
+    word,
+    letters: []
+  };
+
+  // First pass to mark CORRECT letters (to not mark them as present).
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i];
+    if (char === game.secret_word.word[i]) {
+      game.left_to_guess[i] = false;
+    }
+  }
+
+  // Second pass to actually create the guess result.
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i];
+
+    // Not in word? always ABSENT
+    if (!game.secret_word.word.includes(char)) {
+      guess.letters.push({ char, state: 'ABSENT' as GuessState });
+      continue;
+    }
+
+    // In the correct position? always CORRECT
+    if (char === game.secret_word.word[i]) {
+      guess.letters.push({ char, state: 'CORRECT' as GuessState });
+      game.left_to_guess[i] = false;
+      continue;
+    }
+
+    // Otherwise PRESENT if it wasn't guessed already in the correct position.
+    if (isLetterNotKnown(game, char)) {
+      guess.letters.push({ char, state: 'PRESENT' as GuessState });
+    } else {
+      guess.letters.push({ char, state: 'ABSENT' as GuessState });
+    }
+  }
+
+  return guess;
 }
 
 export async function addGuess(gameId: string, word: string): Promise<GuessResult> {
