@@ -1,24 +1,60 @@
-<h1>Welcome to WorDuel</h1>
-
 <%- include('partials/test_button', { label: 'Ping' }) %>
 
-<button
-    hx-post="/game/create"
-    hx-swap="none"
-    class="bg-green-500 hover:bg-green-700 text-white p-4 rounded">
-    
-    <span class="htmx-indicator">⌛</span>
+<div class="flex min-h-[80vh] w-full items-center justify-center p-6">
 
-    Create and Join Game
-</button>
+  <div class="grid w-full max-w-6xl grid-cols-1 gap-12 lg:grid-cols-3 items-center">
 
-<button
-    hx-post="/game/join"
-    hx-swap="none"
-    class="bg-purple-500 hover:bg-purple-700 text-white p-4 rounded">
-    
-    <span class="htmx-indicator">⌛</span>
+    <div class="flex flex-col items-center justify-center">
+      TODO: Render game-partial here
+    </div>
 
-    Join Any Public Game
-</button>
 
+    <div class="flex flex-col text-center lg:text-left">
+      <h1 class="mb-4 text-4xl font-black tracking-tighter sm:text-4xl">
+        Welcome to WorDuel!</span>
+      </h1>
+      
+      <div class="space-y-4 text-lg font-medium text-gray-800">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </p>
+        <p class="text-sm text-gray-600">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        </p>
+      </div>
+    </div>
+
+
+    <div class="flex flex-col items-center justify-center gap-6">
+      
+      <div class="w-full max-w-sm">
+        
+        <% if (locals.logged_in_user) { %>
+          <div class="mb-4 pb-4 text-center border-b-2 border-black">
+            <p class="text-sm font-bold text-gray-500 uppercase">Welcome Back</p>
+            <p class="text-xl font-black"><%= locals.logged_in_user.username %></p>
+          </div>
+        <% } %>
+
+        <div class="flex flex-col gap-4">
+          <%- include('partials/post_button', { text: "Create and Join Game", postUrl: "/game/create" }) %>
+          <%- include('partials/post_button', { text: "Join any Public Game", postUrl: "/game/join" }) %>
+        </div>
+
+        <% if (!locals.logged_in_user) { %>
+          <div class="mt-6 border-t-2 border-black pt-4 text-center">
+            <p class="text-sm font-semibold">Login/Register to save your stats!</p>
+            <div class="mt-2 flex justify-center gap-4 text-sm font-bold underline decoration-2 underline-offset-2">
+              <a href="/auth/login" class="hover:text-teal-600">Login</a>
+              <a href="/auth/register" class="hover:text-teal-600">Register</a>
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
