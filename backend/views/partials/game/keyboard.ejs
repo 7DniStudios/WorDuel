@@ -1,0 +1,60 @@
+<div id="keyboard-container" hx-swap-oob="true" class="mt-6 flex w-full max-w-lg flex-col gap-2">
+  <% 
+  // QWERTY + Polish Characters
+  // TODO: Only add polish characters if the game language is set to Polish.
+  const rows = [
+    ['ą','ć','ę','ł','ń','ó','ś','ź','ż'],
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['ENTER', 'z','x','c','v','b','n','m', 'DELETE']
+  ];
+
+  const keyMap = locals.keyboardMap || new Map();
+  %>
+
+  <% rows.forEach(row => { %>
+    <div class="flex w-full justify-center gap-1">
+      <% row.forEach(key => { %>
+        
+        <% 
+           const status = keyMap.get(key);
+           let colorClass = "bg-white text-black hover:bg-gray-200";
+           
+           if (status === 'CORRECT') colorClass = "bg-green-500 text-white border-green-600";
+           else if (status === 'PRESENT') colorClass = "bg-yellow-500 text-white border-yellow-500";
+           else if (status === 'ABSENT') colorClass = "bg-gray-300 text-white border-gray-500";
+           
+           let widthClass = "flex-1"; 
+           if (key === 'ENTER' || key === 'DELETE') widthClass = "flex-[1.5]";
+        %>
+
+        <button 
+            type="button"
+            onclick="handleVirtualKey('<%= key %>')"
+            class="uppercase <%= colorClass %> <%= widthClass %> h-14 rounded border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 font-bold shadow transition-all text-sm sm:text-base flex items-center justify-center select-none"
+        >
+            <%= key %>
+        </button>
+
+      <% }) %>
+    </div>
+  <% }) %>
+
+  <script>
+    function handleVirtualKey(key) {
+      const input = document.getElementById('word-input');
+      if (!input) return;
+
+      if (key === 'ENTER') {
+        input.closest('form').requestSubmit();
+      } else if (key === 'DELETE') {
+        input.value = input.value.slice(0, -1);
+      } else {
+        // TODO: Use length from the game state.
+        if (input.value.length < 8) {
+          input.value += key;
+        }
+      }
+    }
+  </script>
+</div>

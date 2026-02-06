@@ -22,11 +22,10 @@
     <%- include('partials/game/game_message', { message: '', swap: false }) %>
 
     <form ws-send>
-      <div class="flex gap-2 relative">
         <%- include('partials/game/input_field', { swap: false }) %>
-      </div>
-      <%- include('partials/inputs/form_button', { buttonText: "SUBMIT" }) %>
     </form>
+
+    <%- include('partials/game/keyboard', { keyboardMap: keyboardMap }) %>
 
   </div>
 </div>

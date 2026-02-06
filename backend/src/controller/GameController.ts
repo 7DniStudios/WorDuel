@@ -70,5 +70,5 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
 
   logger.info(`Rendering game room for game ID: ${gameId}`);
   // TODO: Pass general information about the game (word length, language).
-  res.render('game_room', { gameId, guesses: game.guesses });
+  res.render('game_room', { gameId, guesses: game.guesses, keyboardMap: GameService.getKeyboardMap(game) });
 };

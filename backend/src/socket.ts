@@ -138,9 +138,13 @@ export const initWebSocket = (server: HttpServer) => {
             path.join(__dirname, '../views/partials/game/game_message.ejs'),
             { message: '', swap: true }
           );
+          const newKeyboard = await ejs.renderFile(
+            path.join(__dirname, '../views/partials/game/keyboard.ejs'),
+            { keyboardMap: GameService.getKeyboardMap(guessResult.gameState) }
+          );
           
           broadcast(gameId, newWordRow);
-          ws.send(clearInput + gameMessage);
+          ws.send(newKeyboard + clearInput + gameMessage);
         } else {
           let errorMessage = getWordErrorMessage(guessResult.error);
           const gameMessage = await ejs.renderFile(

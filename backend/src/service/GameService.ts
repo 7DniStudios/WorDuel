@@ -145,52 +145,51 @@ export function includesGuess(game: GameState, word: string): boolean {
   return game.guesses.some(guess => guess.word === word);
 }
 
-function isLetterNotKnown(game: GameState, char: string): boolean {
-  for (let i = 0; i < game.left_to_guess.length; i++) {
-    if (game.left_to_guess[i] && game.secret_word.word[i] === char) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function createGuess(game: GameState, word: string): Guess {
   const guess: Guess = {
     word,
     letters: []
   };
 
+  let notKnownLetters = new Map<string, number>();
+
   // First pass to mark CORRECT letters (to not mark them as present).
   for (let i = 0; i < word.length; i++) {
     const char = word[i];
-    if (char === game.secret_word.word[i]) {
+    const secretChar = game.secret_word.word[i];
+    if (char === secretChar) {
       game.left_to_guess[i] = false;
     }
+
+    if (game.left_to_guess[i]) {
+      notKnownLetters.set(secretChar, (notKnownLetters.get(secretChar) || 0) + 1);
+    }
   }
+
+  logger.info(`Not known letters for '${word}': ${JSON.stringify(Array.from(notKnownLetters.entries()))}`);
+
+  let processedLetters = new Map<string, number>();
 
   // Second pass to actually create the guess result.
   for (let i = 0; i < word.length; i++) {
     const char = word[i];
 
+    const alreadyProcessed = processedLetters.get(char) || 0;
+    const notKnown = notKnownLetters.get(char) || 0;
+
     // Not in word? always ABSENT
     if (!game.secret_word.word.includes(char)) {
       guess.letters.push({ char, state: 'ABSENT' as GuessState });
-      continue;
-    }
-
-    // In the correct position? always CORRECT
-    if (char === game.secret_word.word[i]) {
+    } else if (char === game.secret_word.word[i]) {
       guess.letters.push({ char, state: 'CORRECT' as GuessState });
       game.left_to_guess[i] = false;
-      continue;
-    }
-
-    // Otherwise PRESENT if it wasn't guessed already in the correct position.
-    if (isLetterNotKnown(game, char)) {
+    } else if (alreadyProcessed < notKnown) {
       guess.letters.push({ char, state: 'PRESENT' as GuessState });
     } else {
       guess.letters.push({ char, state: 'ABSENT' as GuessState });
     }
+
+    processedLetters.set(char, (processedLetters.get(char) || 0) + 1);
   }
 
   return guess;
@@ -220,9 +219,45 @@ export async function addGuess(gameId: string, word: string): Promise<GuessResul
     const guess = createGuess(game, sanitizedWord);
     game.guesses.push(guess);
     game.last_updated = new Date();
+    for (const letter of guess.letters) {
+      game.used_for_guesses.add(letter.char);
+    }
+
     return { success: true, gameState: game, guess };
   });
 };
+
+// TODO: This is bad, but I am tired at this point...
+export function getKeyboardMap(game: GameState): Map<string, GuessState> {
+  const map = new Map<string, GuessState>();
+
+  let notKnownLetters = new Map<string, number>();
+
+  // First pass to mark CORRECT letters (to not mark them as present).
+  for (let i = 0; i < game.secret_word.word.length; i++) {
+    const char = game.secret_word.word[i];
+    if (game.left_to_guess[i]) {
+      notKnownLetters.set(char, (notKnownLetters.get(char) || 0) + 1);
+    }
+  }
+
+  game.used_for_guesses.forEach(char => {
+    if (!game.secret_word.word.includes(char)) {
+      map.set(char, 'ABSENT');
+      return;
+    }
+
+    const notKnown = notKnownLetters.get(char) || 0;
+    if (notKnown > 0) {
+      map.set(char, 'PRESENT');
+      return;
+    }
+
+    map.set(char, 'CORRECT');
+  });
+
+  return map;
+}
 
 export function getGame(gameId: string): GameState | undefined {
   return games.get(gameId);
