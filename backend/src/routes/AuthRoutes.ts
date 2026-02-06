@@ -13,4 +13,4 @@ authRouter.post('/login', AuthMiddleware.getUser, AuthController.loginUser);
 
 authRouter.get('/logout', AuthController.logoutUser);
 
-authRouter.patch('/update_data', AuthController.updateData);
+authRouter.post('/update_data', AuthController.updateData);

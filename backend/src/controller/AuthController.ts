@@ -140,17 +140,23 @@ export async function updateData(req: Request, res: Response) {
   // TODO: Do not duplicate registration validation.
   if (typeof username !== 'string' || typeof email !== 'string' /* || typeof password !== 'string' */) {
     const message = "Invalid input types.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 
   if (username.length < 2 || username.length > 50) {
     const message = "Invalid username length. Must be between 2 and 50 characters.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 
   if (email.length > 200) {
     const message = "Email too long. Max 200 characters.";
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 
   const input: AuthService.UpdateUserDataInput = {
@@ -162,7 +168,9 @@ export async function updateData(req: Request, res: Response) {
   const updateResult = await AuthService.updateUserData(user_id, input);
   if (updateResult.success === false) {
     const message = registerErrorToMessage(updateResult.error);
-    return res.status(200).send(message);
+    return res.status(200).render(
+      "partials/alert/error",
+      getErrorPopupSetup(message));
   }
 
   const token = await AuthService.generateToken(user_id, username);
