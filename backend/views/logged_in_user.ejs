@@ -1,139 +1,230 @@
-<div class="flex flex-row w-full justify-center p-6 gap-2 flex-auto bg-zinc-700 text-white h-1/2" >
-  <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-    <div class="flex flex-col h-full gap-2">
-      <div id="tab-selectors" class="flex flex-row justify-around">
-        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink active-tablink" onclick="tabClick(event, 'friends-tab')">Friends</button>
-        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink" onclick="tabClick(event, 'send-requests-tab')">Send Requests</button>
-        <button class="bg-sky-500 hover:bg-sky-700 grow p-4 tablink" onclick="tabClick(event, 'recieved-requests-tab')">Recieved Requests</button>
+<div class="mx-auto w-full max-w-5xl p-6 flex flex-col gap-8" >
+
+  <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-2 border-black bg-white p-6 shadow-[4px_4px_0_0_#000]">
+    <div class="flex items-center gap-4">      
+        <h2 class="text-3xl font-black tracking-tight"><%= locals.username %></h2>
+        <a href="/user/<%= locals.user_id %>"><u> #<%= locals.user_id %></u> — Your Page</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+
+    <%- include('partials/user_stats') %>
+
+    <div class="md:col-span-2 flex-1 h-full">
+
+      <div id="tab-selectors" class="flex flex-row flex-wrap gap-2 mb-2 flex-none">
+        <button class="border-2 border-transparent px-6 py-2 font-semibold hover:bg-black hover:text-white focus:ring-2 focus:ring-yellow-300 focus:outline-0 tablink active-tablink" onclick="tabClick(event, 'friends-tab')">Friends</button>
+        <button class="border-2 border-transparent px-6 py-2 font-semibold hover:bg-black hover:text-white focus:ring-2 focus:ring-yellow-300 focus:outline-0 tablink" onclick="tabClick(event, 'send-requests-tab')">Send Requests</button>
+        <button class="border-2 border-transparent px-6 py-2 font-semibold hover:bg-black hover:text-white focus:ring-2 focus:ring-yellow-300 focus:outline-0 tablink" onclick="tabClick(event, 'recieved-requests-tab')">Recieved Requests</button>
       </div>
       <!-- TODO: currently it is impossible for two users taht set their profies to private to send a friend request to each other
-      Add a new tab with a form to send a request using user id? 
+        Add a new tab with a form to send a request using user id? 
       -->
-      <span id="friends-tab" class="overflow-auto tabcontent"><div class="flex flex-col gap-2">
-        <% if(locals.friends.length == 0) { %>
-          <p> You have no friends =( </p>
-        <% } %>
-        <% for(var i=0; i < locals.friends.length; i++) { %>
-          <div class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-            <div>
-              <a href="/user/<%= locals.friends[i].user_id %>"> <%= locals.friends[i].username %> </a>
-            </div> <!-- TODO: Develop this and make it pretty -->
+
+      <div class="w-full flex-1 border-2 border-black bg-white shadow-[4px_4px_0_0_#000] flex flex-col">
+
+        <div id="friends-tab" class="tabcontent h-full flex flex-col relative">
+          <div class="flex-1 h-full overflow-y-auto">
+            <%- include('partials/friend_list') %>
           </div>
-        <% } %>
-      </div></span>
-      <span id="send-requests-tab" class="tabcontent" style="display: none"><div class="flex flex-col overflow-auto gap-2 h-full">
-        <% if(locals.sent_friend_requests.length == 0) { %>
-          <p> You have no unanswered send friend requests </p>
-        <% } %>
-        <% for(var i=0; i < locals.sent_friend_requests.length; i++) { %>
-          <div id="sent-req-<%= i %>" class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-            <div class="flex flex-row justify-around gap-2">
-              <a href="/user/<%= locals.sent_friend_requests[i].user_id %>"> <%= locals.sent_friend_requests[i].username %> </a>
-              <button
-                hx-post="/friend_request/<%= locals.sent_friend_requests[i].friends_id %>/cancel"
-                hx-swap="outerHTML"
-                hx-target="#sent-req-<%= i %>"
-                class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
-                Cancel
-              </button>
-            </div> <!-- TODO: Develop this and make it pretty -->
-          </div>
-        <% } %>
-      </div></span>
-      <span id="recieved-requests-tab" class="tabcontent" style="display: none"><div class="flex flex-col overflow-auto gap-2 h-full">
-        <% if(locals.received_friend_requests.length == 0) { %>
-          <p> You have no unanswered recieved friend requests </p>
-        <% } %>
-        <% for(var i=0; i < locals.received_friend_requests.length; i++) { %>
-          <div id="recieved-req-<%= i %>" class="flex-none text-left outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-            <div class="flex flex-row justify-around gap-2">
-              <a href="/user/<%= locals.received_friend_requests[i].user_id %>"> <%= locals.received_friend_requests[i].username %> </a>
-              <button
-                hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/accept"
-                hx-swap="outerHTML"
-                hx-target="#recieved-req-<%= i %>"
-                class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
-                Accept
-              </button>
-              <button
-                hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/reject"
-                hx-swap="outerHTML"
-                hx-target="#recieved-req-<%= i %>"
-                class="justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
-                Decline
-              </button>
-            </div> <!-- TODO: Develop this and make it pretty -->
-          </div>
-        <% } %>
-      </div></span>
-    </div>
-  </div>
-  <div class="flex-1/2">
-    <div class="flex flex-col h-full gap-2">
-      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-        <ul class="text-left">                           <!-- TODO: Generalize and move to partial views -->
-          <li> Username: <%= locals.username %> </li>
-          <li> Player since: <%= locals.created_at.toLocaleDateString(undefined, {weekday: "long", year: "numeric", month: "long", day: "numeric"}) %> </li>
-          <li> Games played: <%= locals.games_played %> </li>
-          <li> Games won: <%= locals.games_won  %> </li>
-        </ul>
+        </div>
+
+        <div id="send-requests-tab" class="tabcontent h-full flex flex-col relative" style="display: none">
+          <% if(locals.sent_friend_requests.length > 0) { %>
+            <ul class="divide-y-2 divide-gray-200">
+              <% for(var i=0; i < locals.sent_friend_requests.length; i++) { %>
+                <li id="sent-req-<%= i %>" class="group">
+                  <a href="/user/<%= locals.sent_friend_requests[i].user_id %>" class="flex items-center justify-between p-4">
+                    
+                    <div class="flex items-center gap-4">
+                      <span class="font-bold text-lg group-hover:underline decoration-2 underline-offset-4">
+                        <%= locals.sent_friend_requests[i].username %>
+                      </span>
+                    </div>
+
+                    <button
+                      hx-post="/friend_request/<%= locals.sent_friend_requests[i].friends_id %>/cancel"
+                      hx-swap="outerHTML"
+                      hx-target="#sent-req-<%= i %>"
+                      class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-red-50 hover:bg-red-300">
+                      Cancel
+                    </button>
+
+                  </a>
+                </li>
+              <% } %>
+            </ul>
+          <% } else { %>
+            <div class="p-10 text-center flex flex-col items-center justify-center text-gray-500 gap-2">
+              <p>You have no pending friend requests =(</p>
+            </div>
+          <% } %>
+        </div>
+
+        <div id="recieved-requests-tab" class="tabcontent h-full flex flex-col relative" style="display: none">
+          <% if(locals.received_friend_requests.length > 0) { %>
+            <ul class="divide-y-2 divide-gray-200">
+              <% for(var i=0; i < locals.received_friend_requests.length; i++) { %>
+                <li id="recieved-req-<%= i %>" class="group">
+                  <a href="/user/<%= locals.received_friend_requests[i].user_id %>" class="flex items-center justify-between p-4">
+                    
+                    <div class="flex items-center gap-4">
+                      <span class="font-bold text-lg group-hover:underline decoration-2 underline-offset-4">
+                        <%= locals.received_friend_requests[i].username %>
+                      </span>
+                    </div>
+
+                    <button
+                      hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/accept"
+                      hx-swap="outerHTML"
+                      hx-target="#recieved-req-<%= i %>"
+                      class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-green-50 hover:bg-green-300">
+                      Accept
+                    </button>
+                    <button
+                      hx-post="/friend_request/<%= locals.received_friend_requests[i].friends_id %>/reject"
+                      hx-swap="outerHTML"
+                      hx-target="#recieved-req-<%= i %>"
+                      class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-red-50 hover:bg-red-300">
+                      Decline
+                    </button>
+
+                  </a>
+                </li>
+              <% } %>
+            </ul>
+          <% } else { %>
+            <div class="p-10 text-center flex flex-col items-center justify-center text-gray-500 gap-2">
+              <p>You have not received any friend requests =(</p>
+            </div>
+          <% } %>
+        </div>
       </div>
-      <div class="flex-1/2 outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2">
-        <div id="user-data-box" class="flex flex-col justify-between h-1/1" style="display: block;">
-          <ul class="text-left">
-            <li> Username: <%= locals.username %> </li>
-            <li> Email: <%= locals.email %> </li>
-            <li> Is profile public: <%= locals.is_public %> </li>
-<!--             <li> Password: ••••••••••</li> -->
-          </ul>
-          <button id="data-button" class="flex-none self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 w-9/10">
-            Update personal info
+
+    </div>
+
+  </div>
+
+
+
+  <!-- Re-used stats template -->
+  <div id="user-data-box" style="display: block;" class="md:col-span-1 h-fit border-2 border-black bg-white shadow-[4px_4px_0_0_#000]">
+    <div class="border-b-2 border-black bg-gray-100 p-4 flex justify-between items-center">
+      <h3 class="font-bold text-lg uppercase flex items-center gap-2"> Personal Data </h3>
+
+      <button
+        id="data-button"
+        class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-yellow-50 hover:bg-yellow-300">
+        Update personal info
+      </button>
+    </div>
+    
+    <dl class="divide-y-2 divide-black">
+
+      <div class="p-4">
+        <dt class="text-xs font-bold text-gray-500 uppercase"> Username </dt>
+        <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.username %> </dd>
+      </div>
+
+      <div class="p-4">
+          <dt class="text-xs font-bold text-gray-500 uppercase"> Email </dt>
+          <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.email %> </dd>
+      </div>
+
+      <div class="p-4">
+        <dt class="text-xs font-bold text-gray-500 uppercase"> Is profile public </dt>
+        <dd class="ttext-lg font-bold text-gray-900 mt-1"> <%= locals.is_public %> </dd>
+      </div>
+      
+      <div class="p-4 bg-yellow-50">
+        <dt class="text-xs font-bold text-gray-500 uppercase"> Password </dt>
+        <dd class="text-lg font-bold"> •••••••••• <dd>
+      </div>
+    </dl>
+  </div>
+
+
+
+
+  <form hx-patch="/auth/update_data">
+    <div id="user-data-edit-box" style="display: none;" class="md:col-span-1 h-fit border-2 border-black bg-white shadow-[4px_4px_0_0_#000]">
+      <div class="border-b-2 border-black bg-gray-100 p-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg uppercase flex items-center gap-2"> Personal Data </h3>
+
+        <div>
+          <button
+            id="submit"
+            class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-green-50 hover:bg-green-300">
+            Submit
+          </button>
+          <button
+            id="cancel-button"
+            class="self-end cursor-pointer border-2 border-black px-5 py-3 font-bold text-black shadow-[4px_4px_0_0] transition-all hover:shadow-[2px_2px_0_0] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus:outline-none bg-red-50 hover:bg-red-300">
+            Cancel
           </button>
         </div>
-        <!-- TODO: make this pretty, make buttons align to the bottom -->
-        <!-- XXX: Something is wrong with those flexboxes AND I DONT CARE  -->
-        <!-- TODO: Client side check if passwords match -->
-        <!-- TODO: confirmation dialog window -->
-        <!-- TODO: input current password to change password -->
-        <!-- TODO: what if change fails? -->
-        <!-- TODO: password change -->
-        <form hx-patch="/auth/update_data">
-          <div id="user-data-edit-box" class="flex flex-col justify-between h-1/1" style="display: none;">
-              <div class="flex-auto self-start">
-                <label for="username"> username </label>
-                <input id="username-input" type="text" class="bg-gray-100 text-black " name="username" placeholder="username" value="<%- locals.username %>" required><br><br>
-              </div>
-              <div class="flex-auto">
-                <label for="email"> email </label>
-                <input id="email-input" type="text" class="bg-gray-100 text-black" name="email" placeholder="name@example.com" value="<%- locals.email %>" required><br><br>
-              </div>
-              <div class="flex-auto">
-                <label for="Is profile public"> is_public </label>
-                <input id="is-public-input" type="checkbox" class="bg-gray-100 text-black" name="is_public" value="true" <% if(locals.is_public){ %> checked <% } %> ><br><br>
-              </div>
-              <!-- <div class="flex-auto">
-                <input id="pass-input" type="password" class="bg-gray-100 text-black" name="password" placeholder="password"><br><br>
-              </div>
-              <div class="flex-auto">
-                <input id="rep-pass-input" type="password" class="bg-gray-100 text-black" name="password_repeat" placeholder="repeat password"><br><br>
-              </div> -->
-            <div class="flex flex-row w-1/1 gap-4 px-8">
-              <button
-                type="submit"
-                class="flex flex-auto justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-green-900">
-                  Save
-              </button>
-              <button
-                id="cancel-button" 
-                class="flex flex-auto justify-center self-center outline rounded-2xl inset-ring-1 inset-ring-white/100 p-2 text-center bg-red-900">
-                  Cancel
-              </button> 
-            </div>
-          </div>
-        </form>
       </div>
+      
+      <dl class="divide-y-2 divide-black">
+
+        <div class="p-4">
+          <dt class="text-xs font-bold text-gray-500 uppercase"> Username </dt>
+          <dd>
+            <!-- Modified Username partial -->
+            <input
+              type="text"
+              placeholder="Username"
+              value="<%- locals.username %>"
+              class="mt-0.5 mb-0.5 w-full border-2 border-black py-2 pe-10 pl-3 shadow-[4px_4px_0_0] focus:ring-2 focus:ring-yellow-300 sm:text-sm outline-none transition-all"
+              name="username" id="username-input"
+              required>
+          </dd>
+        </div>
+
+        <div class="p-4">
+            <dt class="text-xs font-bold text-gray-500 uppercase"> Email </dt>
+            <dd>
+              <div class="relative mt-0.5">
+                <input 
+                  type="email" 
+                  placeholder="email@example.com"
+                  value="<%- locals.email %>"
+                  class="w-full border-2 border-black py-2 pe-10 pl-3 shadow-[4px_4px_0_0] focus:ring-2 focus:ring-yellow-300 sm:text-sm outline-none transition-all"
+                  name="email" id="email-input"
+                  required>
+
+                <span class="absolute top-1/2 right-1 -translate-y-1/2 grid w-8 h-8 place-content-center bg-black text-white pointer-events-none">      
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                    <path fill-rule="evenodd" d="M11.89 4.111a5.5 5.5 0 1 0 0 7.778.75.75 0 1 1 1.06 1.061A7 7 0 1 1 15 8a2.5 2.5 0 0 1-4.083 1.935A3.5 3.5 0 1 1 11.5 8a1 1 0 0 0 2 0 5.48 5.48 0 0 0-1.61-3.889ZM10 8a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+              </div>
+            </dd>
+        </div>
+
+        <div class="p-4">
+          <dt class="text-xs font-bold text-gray-500 uppercase"> Is profile public </dt>
+          <dd class="inline-flex items-center gap-1">
+            <input 
+              type="checkbox"
+              value="true"
+              class="m-2 size-6 border-2 border-black shadow-[2px_2px_0_0] shadow-black checked:bg-black focus:ring-2 focus:ring-black"
+              id="is-public-input" name="is_public"
+              <% if(locals.is_public){ %> checked <% } %>>
+
+            <span class="font-semibold"> Make Profile Public </span>
+          </dd>
+        </div>
+        
+        <div class="p-4 bg-yellow-50">
+          <dt class="text-xs font-bold text-gray-500 uppercase"> Password </dt>
+          <dd class="text-lg font-bold"> •••••••••• <dd>
+        </div>
+      </dl>
     </div>
-  </div>
+  </form>
+
 </div>
 
 <script>
@@ -180,6 +271,7 @@
 
 <style>
 button.active-tablink {
-  background-color: oklch(50% 0.134 242.749);
+  border-color: black;
+  background-color: var(--color-yellow-300); /* bg-yellow-300 */
 }
 </style>
