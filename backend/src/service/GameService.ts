@@ -18,10 +18,17 @@ export function playerGameIdToString(playerId: PlayerGameId): string {
   }
 }
 
+export type GuessState = 'CORRECT' | 'PRESENT' | 'ABSENT' | 'UNKNOWN';
+
+export interface Guess {
+  word: string;
+  letters: {char: string, state: GuessState}[];
+}
+
 // TODO: Make the state persistent.
 export interface GameState {
   id: string;
-  guesses: string[];
+  guesses: Guess[];
   mutex: Mutex;
 
   word_length: number;
@@ -114,8 +121,17 @@ export function isPlayerInGame(game: GameState, playerId: PlayerGameId): boolean
 
 export type GuessError = 'INVALID_WORD' | 'WORD_NOT_FOUND' | 'WORD_USED' | 'SERVER_ERROR';
 export type GuessResult =
-  | { success: true; gameState: GameState }
+  | { success: true; gameState: GameState; guess: Guess }
   | { success: false; error: GuessError };
+
+export function includesGuess(game: GameState, word: string): boolean {
+  return game.guesses.some(guess => guess.word === word);
+}
+
+export function createGuess(game: GameState, word: string): Guess {
+  const letters = word.split('').map(char => ({ char, state: 'ABSENT' as GuessState }));
+  return { word, letters };
+}
 
 export async function addGuess(gameId: string, word: string): Promise<GuessResult> {
   const game = games.get(gameId);
@@ -134,13 +150,14 @@ export async function addGuess(gameId: string, word: string): Promise<GuessResul
   }
 
   return await game.mutex.runExclusive(async () => {
-    if (game.guesses.includes(sanitizedWord)) {
+    if (includesGuess(game, sanitizedWord)) {
       return { success: false, error: 'WORD_USED' };
     }
 
-    game.guesses.push(sanitizedWord);
+    const guess = createGuess(game, sanitizedWord);
+    game.guesses.push(guess);
     game.last_updated = new Date();
-    return { success: true, gameState: game };
+    return { success: true, gameState: game, guess };
   });
 };
 
