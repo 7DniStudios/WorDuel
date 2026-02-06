@@ -132,7 +132,7 @@ export const initWebSocket = (server: HttpServer) => {
           logger.info(`WS: Word "${guessedWord}" accepted for game ${gameId}`);
           const newWordRow = await ejs.renderFile(
             path.join(__dirname, '../views/partials/game/word_row.ejs'),
-            { word: guessedWord }
+            { guess: guessResult.guess }
           );
           const gameMessage = await ejs.renderFile(
             path.join(__dirname, '../views/partials/game/game_message.ejs'),
