@@ -1,0 +1,34 @@
+<div class="md:col-span-1 h-fit border-2 border-black bg-white shadow-[4px_4px_0_0_#000]">
+  <div class="border-b-2 border-black bg-gray-100 p-4">
+    <h3 class="font-bold text-lg uppercase flex items-center gap-2"> Stats </h3>
+  </div>
+  
+  <dl class="divide-y-2 divide-black">
+    <div class="p-4">
+      <dt class="text-xs font-bold text-gray-500 uppercase">Joined</dt>
+      <dd class="text-lg font-bold text-gray-900 mt-1">
+        <%= locals.created_at.toLocaleDateString('en-GB', { year: "numeric", month: "long", day: "numeric" }) %>
+      </dd>
+    </div>
+
+    <div class="p-4 grid grid-cols-2 gap-4">
+      <div>
+        <dt class="text-xs font-bold text-gray-500 uppercase"># Games</dt>
+        <dd class="text-2xl font-black text-blue-600"><%= locals.games_played %></dd>
+      </div>
+      <div>
+        <dt class="text-xs font-bold text-gray-500 uppercase"># Wins</dt>
+        <dd class="text-2xl font-black text-green-600"><%= locals.games_won %></dd>
+      </div>
+    </div>
+    
+    <% if (locals.games_played > 0) { %>
+    <div class="p-4 bg-yellow-50">
+      <dt class="text-xs font-bold text-gray-500 uppercase">Win Rate</dt>
+      <dd class="text-lg font-bold">
+        <%= Math.round((locals.games_won / locals.games_played) * 100) %>%
+      </dd>
+    </div>
+    <% } %>
+  </dl>
+</div>

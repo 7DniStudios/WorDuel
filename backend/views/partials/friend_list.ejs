@@ -1,0 +1,26 @@
+<% if(locals.friends.length > 0) { %>
+  <ul class="divide-y-2 divide-gray-200">
+    <% for(var i=0; i < locals.friends.length; i++) { %>
+      <li class="group hover:bg-yellow-50 transition-colors">
+        <a href="/user/<%= locals.friends[i].user_id %>" class="flex items-center justify-between p-4">
+          
+          <div class="flex items-center gap-4">
+            <span class="font-bold text-lg group-hover:underline decoration-2 underline-offset-4">
+              <%= locals.friends[i].username %>
+            </span>
+          </div>
+
+          <!-- stolen arrow! -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-400 group-hover:text-black">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+
+        </a>
+      </li>
+    <% } %>
+  </ul>
+<% } else { %>
+  <div class="p-10 text-center flex flex-col items-center justify-center text-gray-500 gap-2">
+    <p>This player has no friends =(</p>
+  </div>
+<% } %>
