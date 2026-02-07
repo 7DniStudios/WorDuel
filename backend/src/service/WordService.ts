@@ -75,3 +75,19 @@ export async function checkWordExists(languageSanitized: string, wordSanitized: 
     return { exists: false, reason: 'NOT_FOUND' };
   }
 }
+
+export async function markFinishedGame(word: WordRecord, guessed: boolean): Promise<void> {
+  try {
+    await db.none(
+      `UPDATE word_stats
+        SET won_game_count = won_game_count + $(guessedIncrement), last_used = NOW()
+        WHERE word_id = $(word_id)`,
+      {
+        word_id: word.word_id,
+        guessedIncrement: guessed ? 1 : 0
+      }
+    );
+  } catch (error) {
+    logger.error('Database error in markFinishedGame:', error);
+  }
+}
