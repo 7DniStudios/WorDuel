@@ -155,3 +155,12 @@ export async function getUserDataIfVisible(request_user_id: number | null, user_
 
   return null;
 }
+
+export async function recordGameParticipation(user_id: number, guessed: boolean): Promise<void> {
+  try {
+    await db.none('UPDATE users SET games_played = games_played + 1, games_won = games_won + $(guessed) WHERE user_id = $(user_id);',
+      { user_id, guessed: guessed ? 1 : 0 });
+  } catch (err) {
+    logger.error("Error in recordGameParticipation:", err);
+  }
+}

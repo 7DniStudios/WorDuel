@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Mutex } from 'async-mutex';
 
 import * as WordService from "./WordService";
+import * as UserService from "./UserService";
 import { logger } from "../logging/logger";
 
 export type PlayerGameId = 
@@ -277,6 +278,25 @@ export function createGuess(game: GameState, stateGetter: StateGetter, word: str
   return guess;
 }
 
+async function updateDatabaseWithGameResult(game: GameState) {
+  const host = game.host;
+  if (host.type === 'USER') {
+    logger.info(`Recording game result for user ${host.username} (ID: ${host.userId}). Player won: ${game.host_state.found_word}`);
+    await UserService.recordGameParticipation(host.userId, game.host_state.found_word);
+  }
+
+  const guest = game.guest;
+  if (guest && guest.type === 'USER') {
+    logger.info(`Recording game result for user ${guest.username} (ID: ${guest.userId}). Player won: ${game.guest_state.found_word}`);
+    await UserService.recordGameParticipation(guest.userId, game.guest_state.found_word);
+  }
+
+  const isGuessed = game.host_state.found_word || (game.guest_state.found_word);
+  await WordService.markFinishedGame(game.secret_word, isGuessed);
+
+  // TODO: Fill 'guess_count' field of word_stats table.
+}
+
 export async function addGuess(gameId: string, stateGetter: StateGetter, word: string): Promise<GuessResult> {
   const game = games.get(gameId);
   if (!game) {
@@ -310,8 +330,11 @@ export async function addGuess(gameId: string, stateGetter: StateGetter, word: s
     logger.info(`GameService: Comparing guess '${sanitizedWord}' to secret word '${game.secret_word.word}' for game ${gameId}`);
     if (sanitizedWord === game.secret_word.word) {
       logger.info(`GameService: Player guessed the word correctly in game ${gameId}!`);
-      game.game_state = 'FINISHED';
       playerGame.found_word = true;
+      if (game.game_state === 'IN_PROGRESS') {
+        game.game_state = 'FINISHED';
+        updateDatabaseWithGameResult(game);
+      }
     }
 
     return { success: true, gameState: game, guess };
