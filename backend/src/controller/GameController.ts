@@ -99,7 +99,7 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
 
   switch (game.game_state) {
     case 'WAITING_FOR_OPPONENT':
-      // TODO: Render waiting screen.
+      return res.render('game_waitroom', gameInfo);
     case 'IN_PROGRESS':
       return res.render('game_room', gameInfo);
     case 'FINISHED':
