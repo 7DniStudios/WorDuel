@@ -80,6 +80,11 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
 
   logger.info(`Rendering game room for game ID: ${gameId} with player ${myName} and opponent ${opponentName}`);
 
+  // If cache is used the game state might desync
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+
   // TODO: Pass general information about the game (word length, language).
   res.render('game_room', {
     gameId,
