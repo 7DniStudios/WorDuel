@@ -43,6 +43,7 @@ export interface GameState {
   id: string;
   mutex: Mutex;
   game_state: 'WAITING_FOR_OPPONENT' | 'IN_PROGRESS' | 'FINISHED';
+  needs_refresh: boolean;
 
   secret_word: WordService.WordRecord;
 
@@ -90,6 +91,7 @@ export async function createGame(playerId: PlayerGameId) : Promise<string> {
     // NOTE: We might prefere a queue here but for two players mutex should be fine.
     mutex: new Mutex(),
     game_state: 'WAITING_FOR_OPPONENT',
+    needs_refresh: false,
 
     secret_word: word,
 
@@ -143,6 +145,7 @@ export async function joinPublicGame(playerId: PlayerGameId) : Promise<string | 
       if (game.guest === null) {
         game.guest = playerId;
         game.game_state = 'IN_PROGRESS';
+        game.needs_refresh = true;
         logger.info(`GameService: Guest joined public game with ID ${gameId}`);
         return gameId;
       }
