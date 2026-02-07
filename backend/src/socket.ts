@@ -67,11 +67,6 @@ export const initWebSocket = (server: HttpServer) => {
       { guess }
     );
 
-    const errorMessage = await ejs.renderFile(
-      path.join(__dirname, '../views/partials/game/game_message.ejs'),
-      { message: "Internal server error occurred.", swap: true }
-    );
-
     clients.forEach(client => {
       // Send guessed only to the other player
       if (GameService.playerGameIdEquals(client.playerCredentials, sourceCredentials)) {
@@ -80,8 +75,35 @@ export const initWebSocket = (server: HttpServer) => {
 
       if (client.readyState === WebSocket.OPEN) {
         try {
-          logger.warn(`WS: Broadcasting guess to client in game ${gameId} with credentials ${JSON.stringify((client as WebSocketWithCredentials).playerCredentials)}`);
           (client as WebSocket).send(opponentGuessList);
+        } catch (err) {
+          logger.error(`WS: Broadcast Error for client in game ${gameId}`, err);
+        }
+      }
+    });
+  }
+
+  function broadcastGameOver(gameId: string) {
+    const clients = GameService.getGame(gameId)?.clients;
+    if (!clients) {
+      logger.warn(`WS: No clients found for game ${gameId}`);
+      return;
+    }
+
+    // To end the game it is enough to just refresh the page; Controller will take care of the redirection.
+    // TODO: Figure out HTMX WS headers.
+    const refreshCommand = `
+      <div id="game-commands" hx-swap-oob="true">
+        <script>
+          window.location.reload();
+        </script>
+      </div>
+    `;
+
+    clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.send(refreshCommand);
         } catch (err) {
           logger.error(`WS: Broadcast Error for client in game ${gameId}`, err);
         }
@@ -161,6 +183,10 @@ export const initWebSocket = (server: HttpServer) => {
 
           await broadcastGuessOther(gameId, playerCredentials, guessResult.guess);
           ws.send(newKeyboard + clearInput + gameMessage + newWordRow);
+          if (gameState.game_state === 'FINISHED') {
+            logger.info(`WS: Game ${gameId} finished. Broadcasting game over.`);
+            broadcastGameOver(gameId);
+          }
         } else {
           let errorMessage = getWordErrorMessage(guessResult.error);
           const gameMessage = await ejs.renderFile(

@@ -86,12 +86,26 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
   res.set('Expires', '0');
 
   // TODO: Pass general information about the game (word length, language).
-  res.render('game_room', {
+  const gameInfo = {
     gameId,
     myName,
     opponentName,
+    secretWord: game.secret_word.word,
+    playerWon: stateGetter(game).found_word,
     guesses: stateGetter(game).guesses,
     opponentGuesses: GameService.otherGameState(stateGetter)(game).guesses,
     keyboardMap: GameService.getKeyboardMap(game, stateGetter)
-  });
+  };
+
+  switch (game.game_state) {
+    case 'WAITING_FOR_OPPONENT':
+      // TODO: Render waiting screen.
+    case 'IN_PROGRESS':
+      return res.render('game_room', gameInfo);
+    case 'FINISHED':
+      return res.render('game_summary', gameInfo);
+    default:
+      logger.error(`Unknown game state ${game.game_state} for game ID: ${gameId}`);
+      return res.render('nonexistent_game');
+  }
 };

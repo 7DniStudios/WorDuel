@@ -30,6 +30,7 @@ export interface PlayerGameState {
   left_to_guess: boolean[]; // position -> Was this letter guessed?
   used_for_guesses: Set<string>; // For a given char - was it used for a guess?
 
+  found_word: boolean;
   guesses: Guess[];
 }
 
@@ -41,6 +42,7 @@ export interface WebSocketWithCredentials extends WebSocket {
 export interface GameState {
   id: string;
   mutex: Mutex;
+  game_state: 'WAITING_FOR_OPPONENT' | 'IN_PROGRESS' | 'FINISHED';
 
   secret_word: WordService.WordRecord;
 
@@ -87,6 +89,7 @@ export async function createGame(playerId: PlayerGameId) : Promise<string> {
     id: gameId,
     // NOTE: We might prefere a queue here but for two players mutex should be fine.
     mutex: new Mutex(),
+    game_state: 'WAITING_FOR_OPPONENT',
 
     secret_word: word,
 
@@ -100,12 +103,14 @@ export async function createGame(playerId: PlayerGameId) : Promise<string> {
     host_state: {
       left_to_guess: new Array(word.word.length).fill(true),
       used_for_guesses: new Set<string>(),
+      found_word: false,
       guesses: [],
     },
 
     guest_state: {
       left_to_guess: new Array(word.word.length).fill(true),
       used_for_guesses: new Set<string>(),
+      found_word: false,
       guesses: [],
     },
 
@@ -137,6 +142,7 @@ export async function joinPublicGame(playerId: PlayerGameId) : Promise<string | 
 
       if (game.guest === null) {
         game.guest = playerId;
+        game.game_state = 'IN_PROGRESS';
         logger.info(`GameService: Guest joined public game with ID ${gameId}`);
         return gameId;
       }
@@ -296,6 +302,13 @@ export async function addGuess(gameId: string, stateGetter: StateGetter, word: s
     game.last_updated = new Date();
     for (const letter of guess.letters) {
       playerGame.used_for_guesses.add(letter.char);
+    }
+
+    logger.info(`GameService: Comparing guess '${sanitizedWord}' to secret word '${game.secret_word.word}' for game ${gameId}`);
+    if (sanitizedWord === game.secret_word.word) {
+      logger.info(`GameService: Player guessed the word correctly in game ${gameId}!`);
+      game.game_state = 'FINISHED';
+      playerGame.found_word = true;
     }
 
     return { success: true, gameState: game, guess };
