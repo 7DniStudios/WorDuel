@@ -61,14 +61,19 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
     return res.render('nonexistent_game');
   }
 
-  let playerCredentials = getPlayerIdIfExists(req, res);
-  if (!playerCredentials || !GameService.isPlayerInGame(game, playerCredentials)) {
+  const playerCredentials = getPlayerIdIfExists(req, res);
+  if (!playerCredentials) {
+    logger.info(`Unauthenticated user tried to access game with ID: ${gameId}`);
+    return res.render('nonexistent_game');
+  }
+
+  const stateGetter = GameService.isPlayerInGame(game, playerCredentials);
+  if (stateGetter === null) {
     logger.info(`Player not part of game with ID: ${gameId}`);
-    // Security: Do not tell the user the game exists if they are not part of it.
     return res.render('nonexistent_game');
   }
 
   logger.info(`Rendering game room for game ID: ${gameId}`);
   // TODO: Pass general information about the game (word length, language).
-  res.render('game_room', { gameId, guesses: game.guesses, keyboardMap: GameService.getKeyboardMap(game) });
+  res.render('game_room', { gameId, guesses: stateGetter(game).guesses, keyboardMap: GameService.getKeyboardMap(game, stateGetter) });
 };

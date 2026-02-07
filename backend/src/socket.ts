@@ -100,7 +100,8 @@ export const initWebSocket = (server: HttpServer) => {
       return;
     }
 
-    if (!GameService.isPlayerInGame(gameState, playerCredentials)) {
+    const stateGetter = GameService.isPlayerInGame(gameState, playerCredentials);
+    if (stateGetter === null) {
       logger.error('WS: Player not part of this game, closing connection');
       logger.debug(`Player credentials: ${JSON.stringify(playerCredentials)}\nGame Host: ${JSON.stringify(gameState.host)}\nGame Guest: ${JSON.stringify(gameState.guest)}`);
       ws.close();
@@ -127,7 +128,7 @@ export const initWebSocket = (server: HttpServer) => {
           { swap: true }
         );
 
-        const guessResult = await GameService.addGuess(gameId, guessedWord);
+        const guessResult = await GameService.addGuess(gameId, stateGetter, guessedWord);
         if (guessResult.success === true) {
           logger.info(`WS: Word "${guessedWord}" accepted for game ${gameId}`);
           const newWordRow = await ejs.renderFile(
@@ -140,11 +141,11 @@ export const initWebSocket = (server: HttpServer) => {
           );
           const newKeyboard = await ejs.renderFile(
             path.join(__dirname, '../views/partials/game/keyboard.ejs'),
-            { keyboardMap: GameService.getKeyboardMap(guessResult.gameState) }
+            { keyboardMap: GameService.getKeyboardMap(guessResult.gameState, stateGetter) }
           );
           
-          broadcast(gameId, newWordRow);
-          ws.send(newKeyboard + clearInput + gameMessage);
+          // broadcast(gameId, newWordRow); // TODO: Crate a second widget for showing the other user's progress.
+          ws.send(newKeyboard + clearInput + gameMessage + newWordRow);
         } else {
           let errorMessage = getWordErrorMessage(guessResult.error);
           const gameMessage = await ejs.renderFile(
