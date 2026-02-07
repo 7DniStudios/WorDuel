@@ -8,7 +8,7 @@ import * as WordService from "./WordService";
 import { logger } from "../logging/logger";
 
 export type PlayerGameId = 
-  | { type: 'USER'; userId: number }
+  | { type: 'USER'; username: string, userId: number }
   | { type: 'GUEST'; guestId: string };
 
 export function playerGameIdToString(playerId: PlayerGameId): string {
@@ -33,6 +33,10 @@ export interface PlayerGameState {
   guesses: Guess[];
 }
 
+export interface WebSocketWithCredentials extends WebSocket {
+  playerCredentials: PlayerGameId;
+}
+
 // TODO: Make the state persistent.
 export interface GameState {
   id: string;
@@ -53,7 +57,7 @@ export interface GameState {
 
   // Client not necessarily directly map to host/guess.
   // Ex. on device-change for a brief moment one player might have two clients connected.
-  clients: Set<WebSocket>;
+  clients: Set<WebSocketWithCredentials>;
 }
 
 export type StateGetter = (game: GameState) => PlayerGameState;
@@ -107,7 +111,7 @@ export async function createGame(playerId: PlayerGameId) : Promise<string> {
 
 
     last_updated: new Date(),
-    clients: new Set<WebSocket>(),
+    clients: new Set<WebSocketWithCredentials>(),
   });
 
   logger.info(`GameService: Created game with ID ${gameId}`);
@@ -167,6 +171,41 @@ export function isPlayerInGame(game: GameState, playerId: PlayerGameId): StateGe
     return guestState;
   } else {
     return null;
+  }
+}
+
+export function getPlayerNames(game: GameState, stateGetter: StateGetter): { myName: string, opponentName: string } {
+  const hostName = game.host.type === 'USER' ? game.host.username : `Guest (${game.host.guestId.slice(0, 6)})`;
+  const guestName = game.guest ? (game.guest.type === 'USER' ? game.guest.username : `Guest#${game.guest.guestId.slice(0, 6)}`) : 'Waiting for opponent...';
+
+  if (stateGetter === hostState) {
+    return { myName: hostName, opponentName: guestName };
+  } else {
+    return { myName: guestName, opponentName: hostName };
+  }
+}
+
+export function getCredentialsFromGame(game: GameState, playerId: number | string | null) : PlayerGameId | null {
+  if (playerId === null) {
+     return null;
+  }
+
+  if (typeof playerId === 'number') {
+    if (game.host.type === 'USER' && game.host.userId === playerId) {
+      return game.host;
+    } else if (game.guest && game.guest.type === 'USER' && game.guest.userId === playerId) {
+      return game.guest;
+    } else {
+      return null;
+    }
+  } else {
+    if (game.host.type === 'GUEST' && game.host.guestId === playerId) {
+    return game.host;
+  } else if (game.guest && game.guest.type === 'GUEST' && game.guest.guestId === playerId) {
+    return game.guest;
+  } else {
+    return null;
+  }
   }
 }
 
@@ -264,6 +303,8 @@ export async function addGuess(gameId: string, stateGetter: StateGetter, word: s
 };
 
 // TODO: This is bad, but I am tired at this point...
+// NOTE: This is a bit different to an original wordle keyboard: if word contains many 'x' lettes
+//       and the player guessed one 'x' correctly the 'x' on the keyboard will be marked as PRESENT, not CORRECT.
 export function getKeyboardMap(game: GameState, stateGetter: StateGetter): Map<string, GuessState> {
   const map = new Map<string, GuessState>();
 

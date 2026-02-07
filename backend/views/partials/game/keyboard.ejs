@@ -1,4 +1,5 @@
-<div id="keyboard-container" hx-swap-oob="true" class="mt-6 flex w-full max-w-lg flex-col gap-2">
+<div id="keyboard-container" hx-swap-oob="true" class="mx-auto mt-10 flex w-full max-w-lg flex-col gap-2">
+
   <% 
   // QWERTY + Polish Characters
   // TODO: Only add polish characters if the game language is set to Polish.
@@ -13,19 +14,19 @@
   %>
 
   <% rows.forEach(row => { %>
-    <div class="flex w-full justify-center gap-1">
+    <div class="flex w-full justify-center gap-2">
       <% row.forEach(key => { %>
         
         <% 
-           const status = keyMap.get(key);
-           let colorClass = "bg-white text-black hover:bg-gray-200";
-           
-           if (status === 'CORRECT') colorClass = "bg-green-500 text-white border-green-600";
-           else if (status === 'PRESENT') colorClass = "bg-yellow-500 text-white border-yellow-500";
-           else if (status === 'ABSENT') colorClass = "bg-gray-300 text-white border-gray-500";
-           
-           let widthClass = "flex-1"; 
-           if (key === 'ENTER' || key === 'DELETE') widthClass = "flex-[1.5]";
+          const status = keyMap.get(key);
+          let colorClass = "bg-white text-black hover:bg-gray-200";
+          
+          if (status === 'CORRECT') colorClass = "bg-green-500 text-white border-green-600";
+          else if (status === 'PRESENT') colorClass = "bg-yellow-500 text-white border-yellow-500";
+          else if (status === 'ABSENT') colorClass = "bg-gray-300 text-white border-gray-500";
+          
+          let widthClass = "flex-1"; 
+          if (key === 'ENTER' || key === 'DELETE') widthClass = "flex-[1.7]";
         %>
 
         <button 
@@ -57,4 +58,5 @@
       }
     }
   </script>
+
 </div>

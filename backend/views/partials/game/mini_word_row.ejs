@@ -1,0 +1,16 @@
+<div hx-swap-oob="beforeend:#opponent-guesses-list">
+
+  <div class="flex justify-center gap-2 mb-2">
+    <% guess.letters.forEach(letter => { %>
+
+      <div class="w-6 h-6 border-2 border-black flex items-center justify-center text-2xl font-bold font-mono uppercase shadow-[2px_2px_0_0_#000] transition-transform hover:scale-150
+          <% if (letter.state === 'CORRECT') { %> bg-green-500 text-white
+          <% } else if (letter.state === 'PRESENT') { %> bg-yellow-500 text-white
+          <% } else { %> bg-gray-300 text-gray-700 <% } %> <!-- ABSENT and UNKNOWN -->
+        ">
+      </div>
+
+    <% }) %>
+  </div>
+
+</div>

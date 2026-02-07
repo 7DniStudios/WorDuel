@@ -47,21 +47,41 @@ function getGuestId(cookies: Cookies): string | null {
   return cookies.worduelGuestId as string;
 }
 
+export interface WebSocketWithCredentials extends WebSocket {
+  playerCredentials: GameService.PlayerGameId;
+}
+
 // TODO: Implement DDoS protection, rate limiting, etc.
 export const initWebSocket = (server: HttpServer) => {
   const wss = new WebSocketServer({ server });
 
-  function broadcast(gameId: string, message: string) {
+  async function broadcastGuessOther(gameId: string, sourceCredentials: GameService.PlayerGameId, guess: GameService.Guess) {
     const clients = GameService.getGame(gameId)?.clients;
     if (!clients) {
       logger.warn(`WS: No clients found for game ${gameId}`);
       return;
     }
 
+    const opponentGuessList = await ejs.renderFile(
+      path.join(__dirname, '../views/partials/game/mini_word_row.ejs'),
+      { guess }
+    );
+
+    const errorMessage = await ejs.renderFile(
+      path.join(__dirname, '../views/partials/game/game_message.ejs'),
+      { message: "Internal server error occurred.", swap: true }
+    );
+
     clients.forEach(client => {
+      // Send guessed only to the other player
+      if (GameService.playerGameIdEquals(client.playerCredentials, sourceCredentials)) {
+        return;
+      }
+
       if (client.readyState === WebSocket.OPEN) {
         try {
-          client.send(message);
+          logger.warn(`WS: Broadcasting guess to client in game ${gameId} with credentials ${JSON.stringify((client as WebSocketWithCredentials).playerCredentials)}`);
+          (client as WebSocket).send(opponentGuessList);
         } catch (err) {
           logger.error(`WS: Broadcast Error for client in game ${gameId}`, err);
         }
@@ -70,25 +90,6 @@ export const initWebSocket = (server: HttpServer) => {
   }
 
   wss.on('connection', (ws: WebSocket, req) => {
-    // Authentication in WS connect is needed as well because 'direct' websocket connections are possible.
-    let playerCredentials : null | GameService.PlayerGameId = null;
-    const cookies = parse(req.headers.cookie || '');
-    const loggedInUserId = getUserId(cookies);
-    if (loggedInUserId !== null) {
-      playerCredentials = { type: 'USER', userId: loggedInUserId as number };
-    } else {
-      const guestId = getGuestId(cookies);
-      if (guestId !== null) {
-        playerCredentials = { type: 'GUEST', guestId: guestId as string };
-      }
-    }
-
-    if (playerCredentials === null) {
-      logger.error('WS: Could not identify player, closing connection');
-      ws.close();
-      return;
-    }
-
     // This is iffy...
     const urlParts = req.url?.split('/');
     const gameId = urlParts ? urlParts[urlParts.length - 1] : null;
@@ -96,6 +97,17 @@ export const initWebSocket = (server: HttpServer) => {
     let gameState = GameService.getGame(gameId || '');
     if (!gameId || gameState === undefined) {
       logger.error('WS: Invalid game ID, closing connection');
+      ws.close();
+      return;
+    }
+
+    // Authentication in WS connect is needed as well because 'direct' websocket connections are possible.
+    const cookies = parse(req.headers.cookie || '');
+    const loggedInUserId : number | string | null = getUserId(cookies) || getGuestId(cookies);
+    let playerCredentials : null | GameService.PlayerGameId = GameService.getCredentialsFromGame(gameState, loggedInUserId);
+
+    if (playerCredentials === null) {
+      logger.error('WS: Could not identify player, closing connection');
       ws.close();
       return;
     }
@@ -108,7 +120,10 @@ export const initWebSocket = (server: HttpServer) => {
       return;
     }
 
-    gameState.clients.add(ws);
+    const wsWithCredentials = ws as WebSocketWithCredentials;
+    wsWithCredentials.playerCredentials = playerCredentials;
+
+    gameState.clients.add(wsWithCredentials);
     logger.info(`WS: Client ${JSON.stringify(playerCredentials)} connected to game ${gameId}`);
     
     ws.on('message', async (message) => {
@@ -143,8 +158,8 @@ export const initWebSocket = (server: HttpServer) => {
             path.join(__dirname, '../views/partials/game/keyboard.ejs'),
             { keyboardMap: GameService.getKeyboardMap(guessResult.gameState, stateGetter) }
           );
-          
-          // broadcast(gameId, newWordRow); // TODO: Crate a second widget for showing the other user's progress.
+
+          await broadcastGuessOther(gameId, playerCredentials, guessResult.guess);
           ws.send(newKeyboard + clearInput + gameMessage + newWordRow);
         } else {
           let errorMessage = getWordErrorMessage(guessResult.error);
@@ -169,7 +184,7 @@ export const initWebSocket = (server: HttpServer) => {
     ws.on('close', () => {
       logger.info(`WS: Client disconnected from game ${gameId}`);
       if (gameState.clients) {
-        gameState.clients.delete(ws);
+        gameState.clients.delete(wsWithCredentials);
       }
     });
   });

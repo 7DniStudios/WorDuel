@@ -8,7 +8,10 @@ import { logger } from '../logging/logger';
 
 function getPlayerIdIfExists(req: Request, res: Response): GameService.PlayerGameId | null {
   if (res.locals.logged_in_user) {
-    return { type: 'USER', userId: res.locals.logged_in_user.user_id };
+    return {
+      type: 'USER',
+      username: res.locals.logged_in_user.username,
+      userId: res.locals.logged_in_user.user_id };
   }
 
   if (req.cookies.worduelGuestId) {
@@ -73,7 +76,17 @@ export async function renderGameRoom(req: Request<GameSiteParams>, res: Response
     return res.render('nonexistent_game');
   }
 
-  logger.info(`Rendering game room for game ID: ${gameId}`);
+  const { myName, opponentName } = GameService.getPlayerNames(game, stateGetter);
+
+  logger.info(`Rendering game room for game ID: ${gameId} with player ${myName} and opponent ${opponentName}`);
+
   // TODO: Pass general information about the game (word length, language).
-  res.render('game_room', { gameId, guesses: stateGetter(game).guesses, keyboardMap: GameService.getKeyboardMap(game, stateGetter) });
+  res.render('game_room', {
+    gameId,
+    myName,
+    opponentName,
+    guesses: stateGetter(game).guesses,
+    opponentGuesses: GameService.otherGameState(stateGetter)(game).guesses,
+    keyboardMap: GameService.getKeyboardMap(game, stateGetter)
+  });
 };
