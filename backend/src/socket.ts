@@ -241,5 +241,12 @@ export const initWebSocket = (server: HttpServer) => {
         gameState.clients.delete(wsWithCredentials);
       }
     });
+
+    ws.on('disconnect', () => {
+      logger.info(`WS: Client disconnected from game ${gameId}`);
+      if (gameState.clients) {
+        gameState.clients.delete(wsWithCredentials);
+      }
+    });
   });
 };

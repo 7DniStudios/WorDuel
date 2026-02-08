@@ -137,6 +137,14 @@ export async function joinPublicGame(playerId: PlayerGameId) : Promise<string | 
     }
 
     const result = await game.mutex.runExclusive(() => {
+      // Discard abandoned games.
+      if (game.clients.size === 0 && game.game_state === 'WAITING_FOR_OPPONENT') {
+        logger.info(`GameService: Discarding abandoned public game with ID ${gameId}`);
+        game.game_state = 'FINISHED';
+        games.delete(gameId);
+        return null;
+      }
+
       if (isPlayerInGame(game, playerId) !== null) {
         logger.info(`GameService: Host re-joined public game with ID ${gameId}`);
         publicGames.unshift(gameId);
