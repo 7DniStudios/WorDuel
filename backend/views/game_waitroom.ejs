@@ -8,11 +8,17 @@
 
   <div id="game-commands" class="hidden"></div>
 
-  <div hx-ext="ws" ws-connect="/game/<%= gameId %>" class="w-full max-w-5xl">
+  <div
+    hx-ext="ws"
+    ws-connect="/game/<%= gameId %>"
+    class="w-full max-w-5xl flex flex-col items-center gap-10"
+    >
     
     <h3 class="text-center text-xl font-bold mb-4">
       Waiting for an opponent to join<span class="loading-dots inline-block w-8 text-left"></span>
     </h3>
+
+    <%- include('partials/game/invite_link') %>
 
   </div>
 

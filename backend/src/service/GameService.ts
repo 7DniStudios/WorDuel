@@ -162,6 +162,30 @@ export async function joinPublicGame(playerId: PlayerGameId) : Promise<string | 
   return null;
 }
 
+export async function joinGameViaInvite(gameId: string, playerId: PlayerGameId) : Promise<string | null> {
+  const game = games.get(gameId);
+  if (!game) {
+    return null;
+  }
+
+  return await game.mutex.runExclusive(() => {
+    if (isPlayerInGame(game, playerId) !== null) {
+      logger.info(`GameService: Player re-joined game with ID ${gameId} via invite`);
+      return gameId;
+    }
+
+    if (game.guest === null) {
+      game.guest = playerId;
+      game.game_state = 'IN_PROGRESS';
+      game.needs_refresh = true;
+      logger.info(`GameService: Player joined game with ID ${gameId} via invite`);
+      return gameId;
+    }
+
+    return null;
+  });
+}
+
 export function playerGameIdEquals(a: PlayerGameId, b: PlayerGameId): boolean {
   if (a.type !== b.type) {
     return false;

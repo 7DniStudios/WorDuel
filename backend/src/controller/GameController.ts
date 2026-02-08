@@ -47,13 +47,26 @@ export async function createOrJoinGame(req: Request, res: Response) {
     gameId = await GameService.createGame(playerId);
   }
 
-  res.set('HX-Redirect', `/game/${gameId}`);
-  res.send();
+  res.set('HX-Redirect', `/game/${gameId}`).send();
 }
 
 interface GameSiteParams extends ParamsDictionary {
   game_id: string
 };
+
+export async function inviteJoinGame(req: Request<GameSiteParams>, res: Response) {
+  const playerId = getPlayerId(req, res);
+  const gameId = await GameService.joinGameViaInvite(req.params.game_id, playerId);
+
+  if (gameId === null) {
+    logger.info(`Player could not join a game game with ID: ${req.params.game_id} via invite`);
+    return res.render('nonexistent_game');
+  }
+
+  logger.info(`Player with ID: ${playerId.type === 'GUEST' ? playerId.guestId : playerId.userId} successfully joined game with ID: ${gameId} via invite`);
+
+  res.redirect(`/game/${gameId}`);
+}
 
 export async function renderGameRoom(req: Request<GameSiteParams>, res: Response) {
   const gameId = req.params.game_id;

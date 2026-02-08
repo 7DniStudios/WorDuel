@@ -1,0 +1,68 @@
+<div class="w-full max-w-md border-2 border-black bg-white p-4 shadow-[4px_4px_0_0_#000]">
+  
+  <label class="mb-2 block text-sm font-bold uppercase text-gray-700">
+    Invite Link
+  </label>
+
+  <div class="flex items-stretch gap-2">
+    
+    <input 
+      type="text" 
+      id="invite-link"
+      class="w-full border-2 border-black bg-gray-100 px-3 py-2 font-mono text-sm text-gray-600 focus:outline-none"
+      value="" 
+      readonly
+    />
+
+    <button 
+      onclick="copyInviteLink(this)"
+      class="group relative flex w-24 items-center justify-center border-2 border-black bg-yellow-300 font-bold text-black transition-all hover:bg-yellow-400 hover:shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+    >
+
+      <span id="icon-copy" class="flex items-center gap-1">
+        <span>Copy</span>
+      </span>
+
+      <span id="icon-success" class="hidden items-center gap-1 text-green-800">
+        <span>OK!</span>
+      </span>
+
+    </button>
+  </div>
+</div>
+
+<script>
+  const link = window.location.href;
+  const inviteLink = link.replace('/game', '/game/invite');
+  document.getElementById('invite-link').value = inviteLink;
+
+  function copyInviteLink(btnElement) {
+    const input = document.getElementById('invite-link');
+    const copyIcon = btnElement.querySelector('#icon-copy');
+    const successIcon = btnElement.querySelector('#icon-success');
+
+    navigator.clipboard.writeText(input.value).then(() => {
+
+      copyIcon.classList.add('hidden');
+      successIcon.classList.remove('hidden');
+      successIcon.classList.add('flex');
+      
+      btnElement.classList.remove('bg-yellow-300', 'hover:bg-yellow-400');
+      btnElement.classList.add('bg-green-300', 'hover:bg-green-400');
+
+      // Reset to 'Copy' state after 2 seconds.
+      setTimeout(() => {
+        copyIcon.classList.remove('hidden');
+        successIcon.classList.add('hidden');
+        successIcon.classList.remove('flex');
+        
+        btnElement.classList.add('bg-yellow-300', 'hover:bg-yellow-400');
+        btnElement.classList.remove('bg-green-300', 'hover:bg-green-400');
+      }, 2000);
+
+    }).catch(err => {
+      console.error('Błąd kopiowania:', err);
+      alert('Nie udało się skopiować linku. Zaznacz go i skopiuj ręcznie.');
+    });
+  }
+</script>
