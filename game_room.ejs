@@ -1,0 +1,24 @@
+<div class="max-w-md mx-auto mt-10">
+    <h1 class="text-2xl mb-4">Game #<%= gameId %></h1>
+
+    <div hx-ext="ws" ws-connect="/game/<%= gameId %>">
+
+        <div id="guesses-list" class="bg-gray-50 mb-4 h-64 overflow-y-auto border rounded">
+          <% words.forEach(word => { %>
+            <%- include('./partials/game/word_row', { word }) %>
+          <% }) %>
+        </div>
+
+        <%- include('partials/game/game_message', { message: '', swap: false }) %>
+
+        <form ws-send>
+            <div class="flex gap-2">
+                <%- include('partials/game/input_field', { swap: false }) %>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+                    Submit
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
