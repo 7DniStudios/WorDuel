@@ -4,11 +4,13 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { db, UniqueViolation, PgError } from '../config/db';
 import { logger } from '../logging/logger';
 
-export const jwtSecret = (() => {
+const jwtRandomAddition : string = Date.now().toString()
+
+export const jwtSecret =  (() => {
   if (typeof process.env.JWT_SECRET === 'undefined') {
     throw new Error("Variable JWT_SECRET undefined");
   } else {
-    return process.env.JWT_SECRET;
+    return process.env.JWT_SECRET + jwtRandomAddition;
   }
 })();
 
