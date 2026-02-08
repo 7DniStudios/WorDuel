@@ -80,7 +80,7 @@ const games = new Map<string, GameState>();
 // FIFO queue of IDs of public games (joinable by anyone).
 const publicGames: string[] = [];
 
-export async function createGame(playerId: PlayerGameId) : Promise<string> {
+export async function createGame(playerId: PlayerGameId, isPublic: boolean) : Promise<string> {
   const gameId = uuidv4();
 
   const word = await WordService.drawRandomWord('PL');
@@ -123,7 +123,10 @@ export async function createGame(playerId: PlayerGameId) : Promise<string> {
   });
 
   logger.info(`GameService: Created game with ID ${gameId}`);
-  publicGames.push(gameId);
+
+  if (isPublic) {
+    publicGames.push(gameId);
+  }
 
   return gameId;
 };

@@ -33,18 +33,18 @@ function getPlayerId(req: Request, res: Response): GameService.PlayerGameId {
   return { type: 'GUEST', guestId: newGuestId };
 };
 
-export async function createAndJoinGame(req: Request, res: Response) {
-  const gameId = await GameService.createGame(getPlayerId(req, res));
+export async function createPrivateGame(req: Request, res: Response) {
+  const gameId = await GameService.createGame(getPlayerId(req, res), false);
 
   res.set('HX-Redirect', `/game/${gameId}`);
   res.send();
-};
+}
 
 export async function createOrJoinGame(req: Request, res: Response) {
   const playerId = getPlayerId(req, res);
   let gameId: string | null = await GameService.joinPublicGame(playerId);
   if (!gameId) {
-    gameId = await GameService.createGame(playerId);
+    gameId = await GameService.createGame(playerId, true);
   }
 
   res.set('HX-Redirect', `/game/${gameId}`).send();
