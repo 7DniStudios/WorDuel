@@ -1,0 +1,69 @@
+<div class="flex min-h-[80vh] w-full items-center justify-center p-6">
+
+  <div class="grid w-full max-w-6xl grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+
+    <div class="flex flex-col items-center justify-center">
+      <table class="table-auto [&_:is(th,td):where(:nth-child(1),:nth-child(3))]:text-right">
+        <tr>
+          <th class="border-x-2 px-1"> # </th>
+          <th> Username </th>
+          <th> Games Played </th>
+        </tr>
+        <% for(var i=0; i < locals.leaders.games_played.length; i++) { %>
+        <tr>
+          <td class="border-x-2 px-1"> #<%= i+1 %> </td>
+          <td> 
+            <a href="/user/<%= locals.leaders.games_played[i].user_id %>">
+              <%= locals.leaders.games_played[i].username %>
+            </a> </td>
+          <td> <%= locals.leaders.games_played[i].games %> </td>
+        </tr>
+        <% } %>
+        <% if(locals.logged_in_user){ %>
+          <tr>
+          <td class="border-x-2 px-1">  </td>
+          <td> <a href="/user/<%= locals.logged_in_user.user_id %>">
+             <strong> <%= locals.logged_in_user.username %> </strong>
+            </a> </td>
+          <td>
+            <strong> <%= locals.user_ranking.games_played %> </strong>
+          </td>
+        </tr>
+        <% } %>
+      </table>
+    </div>
+
+    <div class="flex flex-col items-center justify-center">
+      <table class="table-auto [&_:is(th,td):where(:nth-child(1),:nth-child(3))]:text-right">
+        <tr>
+          <th class="border-x-2 px-1"> # </th>
+          <th> Username </th>
+          <th> Games Won </th>
+        </tr>
+        <% for(var i=0; i < locals.leaders.games_won.length; i++) { %>
+        <tr>
+          <td class="border-x-2 px-1"> #<%= i+1 %> </td>
+          <td> 
+            <a href="/user/<%= locals.leaders.games_won[i].user_id %>">
+              <%= locals.leaders.games_won[i].username %>
+            </a> </td>
+          <td> <%= locals.leaders.games_won[i].games %> </td>
+        </tr>
+        <% } %>
+        <% if(locals.logged_in_user){ %>
+          <tr>
+          <td class="border-x-2 px-1">  </td>
+          <td> <a href="/user/<%= locals.logged_in_user.user_id %>">
+             <strong> <%= locals.logged_in_user.username %> </strong>
+            </a> </td>
+          <td>
+            <strong> <%= locals.user_ranking.games_won %> </strong>
+          </td>
+        </tr>
+        <% } %>
+      </table>
+    </div>
+
+
+  </div>
+</div>
