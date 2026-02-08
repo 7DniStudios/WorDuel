@@ -1,0 +1,54 @@
+<div class="flex min-h-[80vh] w-full items-center justify-center p-6">
+
+  <div class="grid w-full max-w-6xl grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+
+    <div class="md:col-span-1 h-fit border-2 border-black bg-white shadow-[4px_4px_0_0_#000]">
+      <div class="border-b-2 border-black bg-gray-100 p-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg uppercase flex items-center gap-2"> Top Played Games </h3>
+      </div>
+      
+      <dl class="divide-y-2 divide-black">
+
+        <% for(var i=0; i < locals.leaders.games_played.length; i++) { %>
+          <div class="p-4 flex justify-between items-center">
+            <dt class="text-lg font-bold text-gray-500 uppercase"> <%= locals.leaders.games_played[i].username %> </dt>
+            <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.leaders.games_played[i].games %> </dd>
+          </div>
+        <% } %>
+
+        <% if(locals.logged_in_user){ %>
+          <div class="p-4 bg-yellow-50 flex justify-between items-center">
+            <dt class="text-lg font-bold text-gray-500 uppercase"> Your Ranking </dt>
+            <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.user_ranking.games_played %> </dd>
+          </div>
+        <% } %>
+
+      </dl>
+    </div>
+
+    <div class="md:col-span-1 h-fit border-2 border-black bg-white shadow-[4px_4px_0_0_#000]">
+      <div class="border-b-2 border-black bg-gray-100 p-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg uppercase flex items-center gap-2"> Top Won Games </h3>
+      </div>
+      
+      <dl class="divide-y-2 divide-black">
+
+        <% for(var i=0; i < locals.leaders.games_won.length; i++) { %>
+          <div class="p-4 flex justify-between items-center">
+            <dt class="text-lg font-bold text-gray-500 uppercase"> <%= locals.leaders.games_won[i].username %> </dt>
+            <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.leaders.games_won[i].games %> </dd>
+          </div>
+        <% } %>
+
+        <% if(locals.logged_in_user){ %>
+          <div class="p-4 bg-yellow-50 flex justify-between items-center">
+            <dt class="text-lg font-bold text-gray-500 uppercase"> Your Ranking </dt>
+            <dd class="text-lg font-bold text-gray-900 mt-1"> <%= locals.user_ranking.games_won %> </dd>
+          </div>
+        <% } %>
+
+      </dl>
+    </div>
+
+  </div>
+</div>
