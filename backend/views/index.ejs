@@ -5,7 +5,13 @@
   <div class="grid w-full max-w-6xl grid-cols-1 gap-12 lg:grid-cols-3 items-center">
 
     <div class="flex flex-col items-center justify-center">
-      TODO: Render game-partial here
+      <div
+        id="opponent-guesses-list"
+        class="flex h-96 flex-col overflow-y-auto bg-gray-50 p-4 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] border-2 border-black mb-4">
+        <% mockGuesses.forEach(guess => { %>
+          <%- include('./partials/game/mini_word_row', { guess }) %>
+        <% }) %>
+      </div>
     </div>
 
 

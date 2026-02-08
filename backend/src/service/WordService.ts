@@ -10,7 +10,7 @@ export interface WordRecord {
 }
 
 // Unused now; Will be used in the future.
-export async function drawRandomWord(languageSanitized: string): Promise<WordRecord> {
+export async function drawRandomWord(languageSanitized: string, countUse: boolean): Promise<WordRecord> {
   return db.tx('draw-word-transaction', async (t: ITask<any>) => {
     // TODO: Do not use 'ORDER BY RANDOM()' for performance reasons.
     // TODO: Implement pseudo-random selection based on word_stats data (timestamp, game_count).
@@ -29,9 +29,9 @@ export async function drawRandomWord(languageSanitized: string): Promise<WordRec
 
     await t.none(
       `UPDATE word_stats
-        SET game_count = game_count + 1, last_used = NOW()
+        SET game_count = game_count + $(countUse), last_used = NOW()
         WHERE word_id = $(word_id)`,
-      { word_id: drawnWord.word_id }
+      { word_id: drawnWord.word_id, countUse: countUse ? 1 : 0 }
     );
 
     return drawnWord;

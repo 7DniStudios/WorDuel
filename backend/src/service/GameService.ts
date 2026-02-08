@@ -83,7 +83,7 @@ const publicGames: string[] = [];
 export async function createGame(playerId: PlayerGameId, isPublic: boolean) : Promise<string> {
   const gameId = uuidv4();
 
-  const word = await WordService.drawRandomWord('PL');
+  const word = await WordService.drawRandomWord('PL', true);
 
   logger.info(`GameService: Creating game with ID ${gameId} and secret word '${word.word}' for player ${playerGameIdToString(playerId)}`);
 
@@ -311,6 +311,20 @@ export function createGuess(game: GameState, stateGetter: StateGetter, word: str
   }
 
   return guess;
+}
+
+const mockGuesses: Guess[] = [];
+
+export async function getMockGuesses(): Promise<Guess[]> {
+  const mockGame = await createGame({ type: 'GUEST', guestId: 'mock' }, false);
+
+  while (mockGuesses.length < 10) {
+    const guessWord = await WordService.drawRandomWord('PL', false);
+    const guess = createGuess(games.get(mockGame) as GameState, hostState, guessWord.word);
+    mockGuesses.push(guess);
+  }
+
+  return mockGuesses;
 }
 
 async function updateDatabaseWithGameResult(game: GameState) {

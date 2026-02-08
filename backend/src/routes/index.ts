@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import * as GameService from '../service/GameService';
 import { authRouter } from './AuthRoutes';
 import { userRouter } from './UserRoutes';
 import { gameRouter } from './GameRoutes';
@@ -7,7 +8,7 @@ import { friendRequestRouter } from './FriendRequestRoutes';
 
 export const mainRouter = Router();
 
-mainRouter.get('/', (_, res) => res.render('index'));
+mainRouter.get('/', async (_, res) => res.render('index', { mockGuesses: await GameService.getMockGuesses() }));
 mainRouter.use('/auth', authRouter);
 mainRouter.use('/user', userRouter);
 mainRouter.use('/game', gameRouter);
