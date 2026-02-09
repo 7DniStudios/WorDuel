@@ -1,10 +1,9 @@
 <input 
+    autofocus
     id="word-input"
     name="word"
     type="text"
-    onsubmit="return false;"
     autocomplete="off"
-
     <% if (locals.swap) { %> hx-swap-oob="true" <% } %>
 
     minlength="8"
