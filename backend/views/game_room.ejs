@@ -1,24 +1,59 @@
-<div class="max-w-md mx-auto mt-10">
-    <h1 class="text-2xl mb-4">Game #<%= gameId %></h1>
+<div class="flex min-h-[80vh] flex-col items-center justify-center py-10">
 
-    <div hx-ext="ws" ws-connect="/game/<%= gameId %>">
+  <div class="mb-6 flex items-center justify-between border-b-2 border-black pb-4">
+    <h1 class="text-2xl font-black uppercase">
+      Game <span class="text-gray-500">#<%= gameId.slice(0,8) %></span>
+    </h1>
+  </div>
 
-        <div id="guesses-list" class="bg-gray-50 mb-4 h-64 overflow-y-auto border rounded">
-          <% words.forEach(word => { %>
-            <%- include('./partials/game/word_row', { word }) %>
+  <div id="game-commands" class="hidden"></div>
+
+  <div hx-ext="ws" ws-connect="/game/<%= gameId %>" class="w-full max-w-5xl">
+
+    <div class="grid grid-cols-1 gap-8 py-10 lg:grid-cols-3 items-start">
+
+      <div class="relative lg:col-span-2 flex flex-col gap-2">
+
+        <div class="absolute -top-4 left-4 bg-yellow-300 border-2 border-black px-2 font-bold text-sm">
+          <%= myName %> (You)
+        </div>
+
+        <div
+          id="guesses-list"
+          class="flex h-96 flex-col overflow-y-auto bg-gray-50 p-4 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] border-2 border-black mb-4">
+          <% guesses.forEach(guess => { %>
+            <%- include('./partials/game/word_row', { guess }) %>
           <% }) %>
         </div>
 
         <%- include('partials/game/game_message', { message: '', swap: false }) %>
 
-        <form ws-send>
-            <div class="flex gap-2">
-                <%- include('partials/game/input_field', { swap: false }) %>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
-                    Submit
-                </button>
-            </div>
+        <form id = "guess-form" ws-send>
+          <%- include('partials/game/input_field', { swap: false }) %>
         </form>
 
-    </div>
+        <%- include('partials/game/keyboard', { keyboardMap: keyboardMap }) %>
+      </div>
+
+      <div class="relative block lg:col-span-1">
+
+        <div class="absolute -top-4 left-4 bg-yellow-300 border-2 border-black px-2 font-bold text-sm">
+          <%= opponentName %> (Opponent)
+        </div>
+
+        <div
+          id="opponent-guesses-list"
+          class="flex h-96 flex-col overflow-y-auto bg-gray-50 p-4 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] border-2 border-black mb-4">
+          <% opponentGuesses.forEach(guess => { %>
+            <%- include('./partials/game/mini_word_row', { guess }) %>
+          <% }) %>
+        </div>
+
+        <div class="text-center font-mono text-xs font-bold border-t-2 border-black pt-2 opacity-50">
+            LIVE VIEW
+        </div>
+
+      </div>
+
+    </div> </div>
 </div>
