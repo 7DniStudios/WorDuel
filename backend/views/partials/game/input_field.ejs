@@ -1,8 +1,9 @@
 <input 
+    autofocus
     id="word-input"
     name="word"
     type="text"
-
+    autocomplete="off"
     <% if (locals.swap) { %> hx-swap-oob="true" <% } %>
 
     minlength="8"
@@ -11,7 +12,7 @@
     pattern="^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{8}$"
     placeholder="Enter 8-letter word"
 
-    class="border p-2 flex-grow rounded uppercase"
+    class="text-base sm:text-2xl w-full border-2 border-black p-2 pe-10 pl-3 shadow-[4px_4px_0_0] focus:ring-2 focus:ring-yellow-300 sm:text-sm outline-none transition-all uppercase tracking-[0.5em]"
     oninput="this.value = this.value.toUpperCase()"
     autocomplete="off"
 >
